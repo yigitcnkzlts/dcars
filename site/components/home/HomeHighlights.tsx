@@ -1,5 +1,5 @@
 import { ArrowUpRight, BadgeCheck, ScanSearch, ShieldCheck } from "lucide-react";
-import Link from "next/link";
+import Link from "@/components/layout/NativeLink";
 
 const highlights = [
   [ScanSearch, "Kısa başvuru", "Araç bilgilerini birkaç adımda paylaşın. Bildiğiniz hasarları ve beklediğiniz fiyatı da ekleyebilirsiniz."],

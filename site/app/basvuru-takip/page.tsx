@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import Link from "@/components/layout/NativeLink";
 import { ArrowUpRight, Search } from "lucide-react";
 import { Navbar } from "@/components/layout/Navbar";
 

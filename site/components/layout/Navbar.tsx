@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { ArrowUpRight, Menu, X } from "lucide-react";
-import Link from "next/link";
+import Link from "@/components/layout/NativeLink";
 import { Logo } from "./Logo";
 import { TopBar } from "./TopBar";
 

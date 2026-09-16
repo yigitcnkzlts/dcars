@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/layout/NativeLink";
 import { ArrowUpRight, Mail, MapPin } from "lucide-react";
 import { Logo } from "./Logo";
 

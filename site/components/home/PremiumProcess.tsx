@@ -1,5 +1,5 @@
 import { ArrowUpRight, BadgeCheck, CarFront, CircleDollarSign, ScanSearch } from "lucide-react";
-import Link from "next/link";
+import Link from "@/components/layout/NativeLink";
 
 const steps = [
   [ScanSearch, "01", "Bilgileri paylaşın", "Yıl, marka, model ve kilometreyi girin; hasar varsa açıklama ve fotoğraf ekleyin."],

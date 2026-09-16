@@ -1,5 +1,5 @@
 import { ArrowUpRight, CheckCircle2 } from "lucide-react";
-import Link from "next/link";
+import Link from "@/components/layout/NativeLink";
 import { Navbar } from "./Navbar";
 
 type ContentPageProps = {

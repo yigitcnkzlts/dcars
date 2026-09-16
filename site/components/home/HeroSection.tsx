@@ -1,5 +1,5 @@
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
-import Link from "next/link";
+import Link from "@/components/layout/NativeLink";
 import Image from "next/image";
 
 export function HeroSection() {

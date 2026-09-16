@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import Link from "next/link";
+import Link from "@/components/layout/NativeLink";
 import { ArrowUpRight, CarFront } from "lucide-react";
 import { Navbar } from "@/components/layout/Navbar";
 import { demoVehicles, formatKm, formatPrice } from "@/lib/demoVehicles";
