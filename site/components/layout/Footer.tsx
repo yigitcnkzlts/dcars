@@ -2,7 +2,7 @@ import Link from "@/components/layout/NativeLink";
 import { ArrowUpRight, Mail, MapPin } from "lucide-react";
 import { Logo } from "./Logo";
 
-const quickLinks = [["Aracımı Sat", "/aracimi-sat"], ["Satılık Araçlar", "/araclar"], ["Başvuru Kontrolü", "/basvuru-takip"], ["Nasıl Çalışır?", "/nasil-calisir"], ["S.S.S.", "/sss"], ["İletişim", "/iletisim"]] as const;
+const quickLinks = [["Aracımı Sat", "/aracimi-sat"], ["Satılık Araçlar", "/araclar"], ["Blog", "/blog"], ["Başvuru Kontrolü", "/basvuru-takip"], ["Nasıl Çalışır?", "/nasil-calisir"], ["S.S.S.", "/sss"], ["İletişim", "/iletisim"]] as const;
 const legalLinks = [["Gizlilik Sözleşmesi", "/gizlilik-sozlesmesi"], ["Aydınlatma Metni", "/aydinlatma-metni"], ["Çerez Politikası", "/cerez-politikasi"], ["Şartlar ve Koşullar", "/sartlar-ve-kosullar"]] as const;
 
 export function Footer() {

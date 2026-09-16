@@ -5,7 +5,7 @@ import Link from "@/components/layout/NativeLink";
 import { Logo } from "./Logo";
 import { TopBar } from "./TopBar";
 
-const links = [["Ana Sayfa", "/"], ["Aracımı Sat", "/aracimi-sat"], ["Satılık Araçlar", "/araclar"], ["Nasıl Çalışır?", "/nasil-calisir"], ["SSS", "/sss"], ["Hakkımızda", "/hakkimizda"], ["İletişim", "/iletisim"]];
+const links = [["Ana Sayfa", "/"], ["Aracımı Sat", "/aracimi-sat"], ["Satılık Araçlar", "/araclar"], ["Blog", "/blog"], ["Nasıl Çalışır?", "/nasil-calisir"], ["SSS", "/sss"], ["Hakkımızda", "/hakkimizda"], ["İletişim", "/iletisim"]];
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
