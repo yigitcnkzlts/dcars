@@ -2334,14 +2334,16 @@ h1 em {
 .model-results button { padding: 9px 11px; border: 0; border-radius: 5px; background: #fff; color: #3b3832; cursor: pointer; text-align: left; font-size: 13px; }
 .model-results button:hover { background: #f2ece1; }
 .model-picker__close { justify-self: start; padding: 2px 0; }
-.valuation-submit-wrap { display: grid; gap: 6px; align-self: start; }
+.valuation-submit-wrap { display: grid; grid-column: 1 / -1; gap: 6px; align-self: start; }
+.package-picker > label span { color: #99948a; font-size: 10px; letter-spacing: 0; text-transform: none; }
 .valuation-submit-wrap .valuation-submit { display: flex; justify-content: space-between; align-items: center; gap: 10px; width: 100%; padding: 0 15px; }
 .valuation-submit-wrap .valuation-submit span { display: inline-flex; align-items: center; gap: 7px; }
 .valuation-submit-wrap .valuation-submit:disabled { display: flex; cursor: not-allowed; opacity: .55; }
 .valuation-submit-wrap small { color: #817b71; font-size: 11px; line-height: 1.4; }
 @media (max-width: 1100px) { .brand-results { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 900px) { .valuation-form { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 700px) { .brand-results { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 560px) { .valuation-page > header { padding-top: 28px; padding-bottom: 20px; } .valuation-page > .valuation-section { padding-top: 20px; } .brand-results { grid-template-columns: 1fr; } .brand-result { font-size: 14px; } }
+@media (max-width: 560px) { .valuation-page > header { padding-top: 28px; padding-bottom: 20px; } .valuation-page > .valuation-section { padding-top: 20px; } .valuation-form { grid-template-columns: 1fr; } .brand-results { grid-template-columns: 1fr; } .brand-result { font-size: 14px; } }
 
 /* Değerleme adımları ve küçük etkileşimler */
 .brand-mark__symbol { transition: transform .28s ease, background .28s ease, color .28s ease, box-shadow .28s ease; }

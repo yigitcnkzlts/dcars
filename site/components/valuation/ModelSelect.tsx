@@ -12,6 +12,6 @@ export function ModelSelect({ brand, value, onChange }: Props) {
   return <div className="valuation-field model-picker"><label htmlFor="valuation-model">Model</label><input id="valuation-model" value={value} onChange={(event) => onChange(event.target.value)} onFocus={() => setFocused(true)} placeholder={brand ? "Model ara veya yazın" : "Önce marka seçin"} disabled={!brand} autoComplete="off" />
     {focused && brand && matches.length > 0 && <div className="model-results" aria-label="Model önerileri">{matches.map((model) => <button type="button" key={model} onMouseDown={(event) => event.preventDefault()} onClick={() => { onChange(model); setFocused(false); }}>{model}</button>)}</div>}
     {focused && brand && <button type="button" className="model-picker__close" onClick={() => setFocused(false)}>Önerileri kapat</button>}
-    {brand && <small>Model listede yoksa adını yazabilirsiniz.</small>}
+    {brand && <small>{models.length > 0 ? `${models.length} model önerisi · ` : ""}Model listede yoksa adını yazabilirsiniz.</small>}
   </div>;
 }
