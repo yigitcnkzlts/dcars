@@ -1,17 +1,10 @@
 "use client";
 
-import { useState } from "react";
 import { getModelsForBrand } from "@/services/vehicleDataService";
 
 type Props = { brand: string; value: string; onChange: (value: string) => void };
 
 export function ModelSelect({ brand, value, onChange }: Props) {
-  const [focused, setFocused] = useState(false);
   const models = getModelsForBrand(brand);
-  const matches = models.filter((model) => model.toLocaleLowerCase("tr-TR").includes(value.trim().toLocaleLowerCase("tr-TR"))).slice(0, 12);
-  return <div className="valuation-field model-picker"><label htmlFor="valuation-model">Model</label><input id="valuation-model" value={value} onChange={(event) => onChange(event.target.value)} onFocus={() => setFocused(true)} placeholder={brand ? "Model ara veya yazın" : "Önce marka seçin"} disabled={!brand} autoComplete="off" />
-    {focused && brand && matches.length > 0 && <div className="model-results" aria-label="Model önerileri">{matches.map((model) => <button type="button" key={model} onMouseDown={(event) => event.preventDefault()} onClick={() => { onChange(model); setFocused(false); }}>{model}</button>)}</div>}
-    {focused && brand && <button type="button" className="model-picker__close" onClick={() => setFocused(false)}>Önerileri kapat</button>}
-    {brand && <small>{models.length > 0 ? `${models.length} model önerisi · ` : ""}Model listede yoksa adını yazabilirsiniz.</small>}
-  </div>;
+  return <label className="valuation-field"><span>Model</span><select value={value} onChange={(event) => onChange(event.target.value)} disabled={!brand}><option value="">{brand ? "Model seçin" : "Önce marka seçin"}</option>{models.map((model) => <option key={model} value={model}>{model}</option>)}</select>{brand && <small>{models.length} hazır model seçeneği</small>}</label>;
 }

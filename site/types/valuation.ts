@@ -11,6 +11,7 @@ export type ValuationRequest = VehicleContext & {
   transmission?: string;
   engine?: string;
   trim?: string;
+  color?: string;
   version?: string;
   inspection?: VehicleInspection;
   factoryEquipment?: string[];

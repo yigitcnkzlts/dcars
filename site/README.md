@@ -124,3 +124,6 @@ The portable build runs Vinext directly without a host `timeout` command. The ma
 
 - [vinext Documentation](https://github.com/cloudflare/vinext)
 - [Drizzle D1 Guide](https://orm.drizzle.team/docs/get-started/d1-new)
+# Araç danışmanı yapılandırması
+
+Araç danışmanının gerçek sohbet yanıtları için sunucu ortamında `AI_GATEWAY_API_KEY` tanımlayın. İsteğe bağlı `AI_GATEWAY_MODEL` ile model değiştirilebilir; varsayılan model `openai/gpt-5.4-mini` olarak ayarlanmıştır. Anahtarı istemci koduna veya depoya eklemeyin. Anahtar yoksa sohbet API'si 503 yanıtıyla yapılandırma eksikliğini bildirir.

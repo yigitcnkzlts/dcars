@@ -15,6 +15,7 @@ export async function createValuationRequest(payload: ValuationRequest) {
       transmission: payload.transmission,
       engine: payload.engine,
       trim: payload.trim,
+      color: payload.color,
       version: payload.version,
       inspection: payload.inspection,
       factoryEquipment: selectedVariant(payload)?.factoryEquipment ?? [],

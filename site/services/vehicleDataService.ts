@@ -7,5 +7,30 @@ export const vehicleBrands: VehicleBrand[] = [
 ].map(([name, models]) => ({ name, slug: name.toLowerCase().replaceAll(" ", "-"), models: models.split(",").map((model) => model.trim()) })).sort((a, b) => a.name.localeCompare(b.name, "tr-TR"));
 
 export function getModelsForBrand(brand?: string): string[] {
-  return vehicleBrands.find((item) => item.name === brand)?.models ?? [];
+  const listed = vehicleBrands.find((item) => item.name === brand)?.models ?? [];
+  return [...new Set([...listed, ...(additionalModels[brand ?? ""] ?? [])])].sort((a, b) => a.localeCompare(b, "tr-TR"));
 }
+
+// Historical model names supplied for Turkey's used-car selection. Technical variants
+// are kept separately because a model name alone does not prove year/engine/trim fit.
+const additionalModels: Record<string, string[]> = {
+  "TOFAŞ": ["Murat 124", "Murat 131"],
+  "Renault": ["Renault 9", "Renault 11", "Renault 12", "Renault 19", "Broadway", "Spring", "Fairway", "Flash", "Toros", "Symbol", "Thalia", "Laguna", "Latitude", "Scenic", "Talisman", "Rafale", "Duster"],
+  "Fiat": ["Uno", "Tempra", "Palio", "Siena", "Albea", "Marea", "Brava", "Bravo", "Punto", "Grande Punto", "500X", "500L"],
+  "Ford": ["Taunus", "Escort", "Fusion", "Mondeo", "B-Max", "C-Max", "S-Max", "Mustang Mach-E", "Courier", "Connect", "Tourneo"],
+  "Opel": ["Vectra", "Omega", "Calibra", "Tigra", "Meriva", "Zafira", "Crossland", "Frontera", "Combo"],
+  "Volkswagen": ["Bora", "Scirocco", "Beetle", "Eos", "CC", "Taigo", "Tayron", "Caddy", "Caravelle", "Amarok", "ID.3", "ID.4", "ID.5", "ID.7"],
+  "Toyota": ["Starlet", "Auris", "Avensis", "Carina", "Corona", "Corolla Cross", "Yaris Cross", "Hilux", "Prius"],
+  "Honda": ["Accord", "Jazz", "CR-X", "CR-Z", "Integra", "Prelude", "ZR-V"],
+  "Hyundai": ["Excel", "Accent Era", "Accent Blue", "Getz", "Atos", "Sonata", "Coupe", "Matrix", "Ioniq", "Ioniq 5", "Ioniq 6"],
+  "Kia": ["Pride", "Cerato", "Sephia", "Shuma", "XCeed", "Niro", "EV3", "EV6", "EV9"],
+  "Peugeot": ["106", "205", "206", "207", "301", "306", "307", "405", "406", "407", "508", "4007", "Partner", "Rifter"],
+  "Citroen": ["Saxo", "Xsara", "C2", "C3 Aircross", "C4 X", "C5", "C-Elysée", "Ami"],
+  "Nissan": ["Almera", "Primera", "Sunny", "Note", "Tiida", "Pathfinder", "Navara", "Patrol", "200SX", "350Z", "370Z", "GT-R"],
+  "Skoda": ["Favorit", "Felicia", "Roomster", "Rapid", "Enyaq", "Elroq"],
+  "Seat": ["Cordoba", "Toledo", "Altea", "Tarraco"],
+  "BMW": ["6 Serisi", "8 Serisi", "Z3", "Z4", "X4", "X7", "i3", "i4", "i5", "i7", "iX1", "iX2", "iX3", "iX"],
+  "Mercedes-Benz": ["190", "CLS", "CLK", "SLK", "SLC", "SL", "GLS", "G Serisi", "Vito", "Viano", "V Serisi", "EQA", "EQB", "EQE", "EQS"],
+  "Volvo": ["S40", "S70", "S80", "V40", "V50", "V60", "V70", "V90", "C30", "C70", "XC70", "EX30", "EX40", "EX90"],
+  "Dacia": ["Sandero Stepway", "Lodgy", "Dokker", "Bigster"],
+};

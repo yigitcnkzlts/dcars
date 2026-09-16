@@ -4,6 +4,7 @@ export type AdvisorRequest = {
   message: string;
   vehicle?: VehicleContext;
   profile?: { saleTiming?: string; accidentStatus?: string; damageArea?: string };
+  history?: { role: "user" | "assistant"; content: string }[];
 };
 
 export type AdvisorResponse = {
