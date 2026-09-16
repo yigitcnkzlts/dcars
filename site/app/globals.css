@@ -2342,3 +2342,37 @@ h1 em {
 @media (max-width: 1100px) { .brand-results { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 700px) { .brand-results { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 560px) { .valuation-page > header { padding-top: 28px; padding-bottom: 20px; } .valuation-page > .valuation-section { padding-top: 20px; } .brand-results { grid-template-columns: 1fr; } .brand-result { font-size: 14px; } }
+
+/* Değerleme adımları ve küçük etkileşimler */
+.brand-mark__symbol { transition: transform .28s ease, background .28s ease, color .28s ease, box-shadow .28s ease; }
+.brand-mark__type strong { transition: color .28s ease; }
+.brand-mark:hover .brand-mark__symbol, .brand-mark:focus-visible .brand-mark__symbol { transform: rotate(-9deg) scale(1.08); background: #a7834d; color: #fff; box-shadow: 0 6px 20px rgba(151,112,53,.23); }
+.brand-mark:hover .brand-mark__type strong, .brand-mark:focus-visible .brand-mark__type strong { color: #a7834d; }
+.wizard-backdrop { background: radial-gradient(circle at 18% 15%, rgba(176,138,79,.29), transparent 28%), rgba(17,17,15,.72); }
+.wizard { border-color: rgba(193,167,123,.4); box-shadow: 0 36px 100px rgba(0,0,0,.33); }
+.wizard-header { position: relative; overflow: hidden; background: radial-gradient(circle at 88% 0%, rgba(185,148,85,.3), transparent 38%), linear-gradient(130deg,#242320,#373229); color: #fff; }
+.wizard-header::after { content: "D"; position: absolute; top: -42px; right: 10px; color: rgba(255,255,255,.035); font: italic 250px Georgia,serif; pointer-events: none; }
+.wizard-header > .section-index { color: #d9b57b; }
+.wizard-header h2 { position: relative; z-index: 1; margin: 10px 0 8px; font-size: clamp(29px,4vw,39px); line-height: 1.07; }
+.wizard-header > p { position: relative; z-index: 1; max-width: 550px; margin: 0 0 22px; color: #d3d0c9; font-size: 13px; line-height: 1.55; }
+.wizard-step { position: relative; z-index: 1; gap: 8px; color: #bbb4a7; font-size: 11px; }
+.wizard-step b { display: grid; place-items: center; width: 30px; height: 30px; border: 1px solid rgba(255,255,255,.22); border-radius: 50%; color: #d2c8b7; font-size: 11px; }
+.wizard-step--active { color: #fff; }
+.wizard-step--active b { border-color: #d5ad70; background: #d5ad70; color: #211d17; font-weight: 700; }
+.wizard-progress { grid-template-columns: repeat(4, minmax(0,1fr)); gap: 12px; }
+.wizard-step::after { content: ""; position: absolute; top: 15px; left: 36px; right: 2px; height: 1px; background: rgba(255,255,255,.2); }
+.wizard-step--active::after { background: #d5ad70; }
+.wizard-step:last-child::after { display: none; }
+.wizard-body { background: radial-gradient(circle at 95% 4%, #f7f2e9, transparent 32%), #fff; }
+.wizard-field input, .wizard-field select { transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease; }
+.wizard-field input:hover, .wizard-field select:hover { border-color: #bda77f; }
+.wizard-field input:focus, .wizard-field select:focus { transform: translateY(-1px); }
+.wizard-footer { border-top: 1px solid #ece7df; background: #fff; }
+.wizard-back { font-size: 14px; }
+.wizard-back:hover { color: #8b6d3e; }
+.wizard-footer .button { transition: transform .2s ease, box-shadow .2s ease; }
+.wizard-footer .button:hover { transform: translateY(-2px); box-shadow: 0 9px 20px rgba(94,70,36,.2); }
+.photo-picker { transition: background .2s ease, transform .2s ease, border-color .2s ease; }
+.photo-picker:hover { transform: translateY(-2px); border-color: #9b7845; background: #faf4e9; }
+@media (max-width: 560px) { .wizard-backdrop { padding: 10px; } .wizard { max-height: calc(100dvh - 20px); } .wizard-progress { grid-template-columns: repeat(4, minmax(0,1fr)); gap: 5px; overflow: visible; } .wizard-step span { display: none; } .wizard-step::after { right: 0; } }
+@media (prefers-reduced-motion: reduce) { .brand-mark__symbol, .brand-mark__type strong, .brand-popular button, .brand-result, .wizard-field input, .wizard-field select, .wizard-footer .button, .photo-picker { transition: none !important; transform: none !important; } }
