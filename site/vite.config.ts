@@ -3,6 +3,7 @@ import { defineConfig } from "vite";
 import hostingConfig from "./.openai/hosting.json";
 import { readExecutionProfile } from "./scripts/execution-profile.mjs";
 import { sites } from "./build/sites-vite-plugin";
+import { fileURLToPath } from "node:url";
 
 const SITE_CREATOR_PLACEHOLDER_DATABASE_ID =
   "00000000-0000-4000-8000-000000000000";
@@ -36,6 +37,7 @@ const localBindingConfig = {
 };
 
 export default defineConfig(async () => {
+  const isVercelBuild = process.env.VERCEL === "1" || process.env.NITRO_PRESET === "vercel";
   // Use Miniflare's local Request.cf placeholder unless fetching is requested.
   process.env.CLOUDFLARE_CF_FETCH_ENABLED ??= "false";
   process.env.WRANGLER_SEND_METRICS ??= "false";
@@ -48,21 +50,35 @@ export default defineConfig(async () => {
   process.env.MINIFLARE_REGISTRY_PATH ??= ".wrangler/registry";
 
   // Wrangler snapshots its log path while the Cloudflare plugin is imported.
-  const { cloudflare } = await import("@cloudflare/vite-plugin");
+  const platformPlugin = isVercelBuild
+    ? (await import("nitro/vite")).nitro()
+    : (await import("@cloudflare/vite-plugin")).cloudflare({
+        viteEnvironment: { name: "rsc", childEnvironments: ["ssr"] },
+        inspectorPort: false,
+        config: localBindingConfig,
+      });
+  const tailwindPlugin = isVercelBuild
+    ? (await import("@tailwindcss/vite")).default()
+    : null;
 
   return {
+    resolve: {
+      alias: isVercelBuild
+        ? [{
+            find: "cloudflare:workers",
+            replacement: fileURLToPath(new URL("./build/vercel-cloudflare-bindings.ts", import.meta.url)),
+          }]
+        : [],
+    },
     server: {
       ...(managedLinux ? { host: "0.0.0.0", allowedHosts: ["terminal.local"] } : {}),
       ...(isCodexSeatbeltSandbox ? { watch: { useFsEvents: false, usePolling: true } } : {}),
     },
     plugins: [
       vinext(),
-      sites({ mockAuth: !managedLinux }),
-      cloudflare({
-        viteEnvironment: { name: "rsc", childEnvironments: ["ssr"] },
-        inspectorPort: false,
-        config: localBindingConfig,
-      }),
+      ...(tailwindPlugin ? [tailwindPlugin] : []),
+      ...(isVercelBuild ? [] : [sites({ mockAuth: !managedLinux })]),
+      platformPlugin,
     ],
   };
 });
