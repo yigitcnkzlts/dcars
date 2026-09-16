@@ -1,11 +1,21 @@
 import type { VehicleContext } from "./vehicle";
 
+export type InspectionStatus = "Orijinal" | "Lokal Boyalı" | "Boyalı" | "Değişen";
+export type InspectionPart = "Sol Ön Çamurluk" | "Sol Ön Kapı" | "Sol Arka Kapı" | "Sol Arka Çamurluk" | "Sağ Ön Çamurluk" | "Sağ Ön Kapı" | "Sağ Arka Kapı" | "Sağ Arka Çamurluk" | "Kaput" | "Tavan" | "Bagaj" | "Ön Tampon" | "Arka Tampon";
+export type VehicleInspection = Record<InspectionPart, InspectionStatus>;
+export type ContactMethod = "Telefon" | "WhatsApp" | "E-posta";
+
 export type ValuationRequest = VehicleContext & {
   mileage?: number;
   fuelType?: string;
   transmission?: string;
   engine?: string;
   trim?: string;
+  version?: string;
+  inspection?: VehicleInspection;
+  factoryEquipment?: string[];
+  optionalEquipment?: string[];
+  preferredContactMethod?: ContactMethod;
   replacedParts?: string;
   paintedParts?: string;
   damageAmount?: string;

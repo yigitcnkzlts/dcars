@@ -2416,3 +2416,107 @@ h1 em {
 @media (max-width: 950px) { .news-grid, .news-guides__grid { grid-template-columns: repeat(2,minmax(0,1fr)); } .news-header { grid-template-columns: 1fr; } .news-header__meta { max-width: 490px; } }
 @media (max-width: 620px) { .news-header { padding-top: 30px; } .news-grid, .news-guides__grid { grid-template-columns: 1fr; } .news-section__heading { align-items: start; flex-direction: column; } .news-card { min-height: 210px; } .news-guides__grid article { padding: 25px; } }
 @media (prefers-reduced-motion: reduce) { .news-card { transition: none; } .news-card:hover { transform: none; } }
+
+/* Ayrıntılı araç değerleme */
+.detailed-flow, .detailed-success { width: min(1320px, calc(100% - 48px)); margin: 26px auto 90px; border: 1px solid #e2ddd3; border-radius: 22px; background: #fff; box-shadow: 0 24px 70px rgba(42,39,32,.07); overflow: hidden; }
+.detailed-flow__intro { padding: 38px clamp(24px,4vw,55px) 26px; }
+.detailed-flow__intro h2 { margin: 10px 0; font-size: clamp(30px,4vw,50px); letter-spacing: -.045em; font-weight: 500; }
+.detailed-flow__intro p { margin: 0; color: #726d64; line-height: 1.6; }
+.detailed-stepper { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 1px; background: #e2ddd3; border-block: 1px solid #e2ddd3; }
+.detailed-stepper button { display: flex; align-items: center; gap: 13px; min-width: 0; min-height: 74px; padding: 14px clamp(12px,2vw,30px); border: 0; background: #faf9f6; color: #7a756c; text-align: left; cursor: pointer; font: inherit; font-size: 13px; }
+.detailed-stepper button:disabled { cursor: default; }
+.detailed-stepper button[aria-current="step"] { background: #2b2924; color: #fff; }
+.detailed-stepper button b { color: #a88b5d; font-size: 19px; font-weight: 500; }
+.detailed-stepper button[aria-current="step"] b { color: #d7b77e; }
+.detailed-stepper button:not(:disabled):hover { background: #eee9df; }
+.detailed-panel { padding: clamp(24px,4vw,55px); background: radial-gradient(circle at 100% 0%,#f8f4ec,transparent 38%),#fff; }
+.detailed-stage__title { margin-bottom: 30px; }
+.detailed-stage__title h3 { margin: 8px 0; font-size: clamp(28px,3vw,40px); font-weight: 500; letter-spacing: -.04em; }
+.detailed-stage__title p { margin: 0; color: #77736c; line-height: 1.6; }
+.detailed-vehicle-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 22px; align-items: start; }
+.detailed-vehicle-grid .brand-picker { order: 0; margin: 0; }
+.detailed-vehicle-grid .brand-popular { max-width: 650px; }
+.detailed-catalog-field > label { color: #888; font-size: 10px; letter-spacing: .13em; text-transform: uppercase; }
+.detailed-catalog-field small { color: #8d8578; font-size: 11px; line-height: 1.5; }
+.detailed-catalog-options { display: flex; flex-wrap: wrap; gap: 6px; max-height: 140px; overflow: auto; }
+.detailed-catalog-options button { padding: 8px 10px; border: 1px solid #e3ded5; border-radius: 7px; background: #fafaf8; color: #615b52; cursor: pointer; font-size: 12px; }
+.detailed-catalog-options button:hover, .detailed-catalog-options button.is-selected { border-color: #a88a5a; background: #f2eadb; color: #544026; }
+.detailed-catalog-options button:disabled { opacity: .45; cursor: not-allowed; }
+.catalog-integrity { display: flex; align-items: center; flex-wrap: wrap; gap: 5px; margin: 28px 0 0; padding: 17px; border-left: 2px solid #a88a5a; background: #f7f3eb; color: #655e53; font-size: 13px; line-height: 1.6; }
+.catalog-integrity a { color: #7e5b2d; text-decoration: underline; }
+.detailed-facts { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 16px; margin-bottom: 30px; }
+.number-input { display: flex; align-items: center; border: 1px solid #deddd8; border-radius: 10px; background: #fafaf8; }
+.number-input:focus-within { border-color: #a48e64; box-shadow: 0 0 0 3px rgba(164,142,100,.12); }
+.number-input input { border: 0; box-shadow: none !important; background: transparent; }
+.number-input span { padding-right: 14px; color: #89847a; font-size: 13px; }
+.inspection-layout { display: grid; grid-template-columns: minmax(0,.9fr) minmax(0,1.1fr); gap: 18px; }
+.inspection-visual, .inspection-list { padding: clamp(18px,2vw,28px); border: 1px solid #e4ded4; border-radius: 14px; background: #fcfbf8; }
+.inspection-visual svg { display: block; width: min(100%,330px); height: auto; margin: 0 auto; }
+.inspection-outline { fill: #dad6cb; stroke: #a9a294; stroke-width: 3px; }
+.inspection-window { fill: #dfddd7; stroke: #aaa397; stroke-width: 2px; pointer-events: none; }
+.inspection-region { cursor: pointer; outline: none; }
+.inspection-region rect { fill: #e7e4dc; stroke: #aaa394; stroke-width: 2px; transition: fill .2s ease,stroke .2s ease; }
+.inspection-region:hover rect, .inspection-region:focus-visible rect { stroke: #342d23; stroke-width: 4px; }
+.inspection-region[data-status="Lokal Boyalı"] rect, .inspection-legend [data-status="Lokal Boyalı"] i { fill: #e6c990; background: #e6c990; }
+.inspection-region[data-status="Boyalı"] rect, .inspection-legend [data-status="Boyalı"] i { fill: #b98558; background: #b98558; }
+.inspection-region[data-status="Değişen"] rect, .inspection-legend [data-status="Değişen"] i { fill: #ae5c52; background: #ae5c52; }
+.inspection-legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 9px 15px; margin-top: 13px; }
+.inspection-legend span { display: inline-flex; align-items: center; gap: 5px; color: #605b52; font-size: 11px; }
+.inspection-legend i { width: 11px; height: 11px; border-radius: 3px; background: #e7e4dc; border: 1px solid #bdb5aa; }
+.inspection-visual > p { max-width: 350px; margin: 15px auto 0; color: #827c71; font-size: 12px; line-height: 1.5; text-align: center; }
+.inspection-list h3, .detailed-equipment h3 { margin: 0 0 5px; font-size: 22px; font-weight: 500; }
+.inspection-list > p, .detailed-equipment > p { margin: 0 0 18px; color: #807b71; font-size: 13px; }
+.inspection-list label { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0; border-top: 1px solid #e9e4dc; color: #4b4740; font-size: 13px; }
+.inspection-list select { min-width: 138px; padding: 8px; border: 1px solid #dcd5c9; border-radius: 6px; background: #fff; color: #34312c; font-size: 12px; }
+.inspection-list select[data-status="Lokal Boyalı"] { border-color: #d4ab6f; }
+.inspection-list select[data-status="Boyalı"] { border-color: #b98558; }
+.inspection-list select[data-status="Değişen"] { border-color: #ae5c52; }
+.detailed-equipment, .detailed-photos { margin-top: 24px; padding: 25px; border: 1px solid #e4ded4; border-radius: 14px; background: #fff; }
+.detailed-equipment h3 small { color: #888078; font-size: 13px; font-weight: 400; }
+.detailed-equipment > div { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 10px; }
+.detailed-equipment label { display: flex; gap: 8px; align-items: center; color: #514c44; font-size: 13px; cursor: pointer; }
+.detailed-equipment input { accent-color: #9b7845; }
+.detailed-photos { display: flex; align-items: flex-start; gap: 15px; }
+.detailed-photos > svg { flex: none; color: #9b7845; }
+.detailed-photos strong { font-size: 16px; }
+.detailed-photos p { color: #77736c; font-size: 13px; line-height: 1.5; }
+.detailed-photo-list { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; }
+.detailed-photo-list > div { display: grid; gap: 7px; width: 120px; }
+.detailed-photo-list img { width: 120px; height: 84px; object-fit: cover; border-radius: 6px; }
+.detailed-photo-list select { width: 100%; }
+.detailed-photo-list button { border: 0; background: transparent; color: #a2463d; cursor: pointer; text-align: left; }
+.valuation-review { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+.valuation-review > div { padding: clamp(22px,3vw,38px); border: 1px solid #e4ded4; background: #fbfaf7; }
+.valuation-review__vehicle h3 { margin: 13px 0 22px; font-size: clamp(28px,3vw,42px); font-weight: 500; letter-spacing: -.035em; }
+.valuation-review dl { margin: 0; }
+.valuation-review dl div { display: flex; justify-content: space-between; gap: 16px; padding: 12px 0; border-top: 1px solid #e3ded5; font-size: 14px; }
+.valuation-review dt { color: #77736c; }
+.valuation-review dd { margin: 0; text-align: right; font-weight: 600; }
+.valuation-review__counts { display: grid; grid-template-columns: repeat(2,1fr); gap: 8px; margin: 19px 0; }
+.valuation-review__counts p { display: flex; align-items: center; gap: 10px; margin: 0; padding: 12px; border: 1px solid #e4ded4; background: #fff; font-size: 12px; }
+.valuation-review__counts b { font-size: 25px; font-weight: 500; }
+.valuation-review__counts p[data-status="Değişen"] b { color: #a2463d; }
+.valuation-review__note { color: #68635b; font-size: 13px; line-height: 1.5; }
+.valuation-review__note strong { color: #2d2a25; }
+.valuation-review__disclaimer { display: flex; gap: 15px; margin-top: 20px; padding: 22px; border-left: 3px solid #a88a5a; background: #f4efe5; }
+.valuation-review__disclaimer svg { flex: none; color: #8e6b3d; }
+.valuation-review__disclaimer p { margin: 6px 0 0; color: #6c655b; font-size: 14px; line-height: 1.6; }
+.detailed-contact { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 20px; }
+.contact-method { display: flex; flex-wrap: wrap; gap: 9px; margin: 0; padding: 0; border: 0; }
+.contact-method legend { margin-bottom: 9px; color: #888; font-size: 10px; letter-spacing: .13em; text-transform: uppercase; }
+.contact-method label { display: inline-flex; align-items: center; gap: 7px; padding: 12px; border: 1px solid #deddd8; border-radius: 8px; cursor: pointer; font-size: 13px; }
+.contact-method label:has(input:checked) { border-color: #a88a5a; background: #f4ede1; }
+.contact-method input { accent-color: #9b7845; }
+.detailed-consent { margin-top: 28px; }
+.detailed-error { margin: 0 40px 12px; color: #9f362b; font-size: 14px; }
+.detailed-actions { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 23px clamp(24px,4vw,55px); border-top: 1px solid #e8e3da; }
+.detailed-actions > span { color: #928b80; font-size: 13px; }
+.detailed-actions .button { border: 0; cursor: pointer; }
+.detailed-back { display: inline-flex; align-items: center; gap: 8px; padding: 10px 0; border: 0; background: transparent; color: #625b52; cursor: pointer; }
+.detailed-back:disabled { opacity: .35; cursor: default; }
+.detailed-success { padding: clamp(35px,6vw,75px); text-align: center; }
+.detailed-success h2 { margin: 15px 0; font-size: clamp(30px,4vw,48px); font-weight: 500; }
+.detailed-success p { max-width: 600px; margin: 0 auto 25px; color: #6c655b; line-height: 1.6; }
+@media (max-width: 900px) { .inspection-layout, .valuation-review { grid-template-columns: 1fr; } .detailed-equipment > div { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media (max-width: 650px) { .detailed-flow, .detailed-success { margin: 16px 20px 50px; border-radius: 15px; } .detailed-stepper button { display: grid; gap: 4px; min-height: 70px; padding: 10px; font-size: 10px; } .detailed-stepper button b { font-size: 15px; } .detailed-vehicle-grid, .detailed-facts, .detailed-contact { grid-template-columns: 1fr; } .detailed-equipment > div { grid-template-columns: 1fr; } .inspection-list label { font-size: 12px; } .inspection-list select { min-width: 125px; } .detailed-actions .button { padding: 12px; font-size: 12px; } }
+@media (prefers-reduced-motion: reduce) { .inspection-region rect { transition: none; } }

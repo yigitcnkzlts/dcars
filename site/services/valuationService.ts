@@ -1,5 +1,6 @@
 import type { ValuationRequest } from "@/types/valuation";
 import { valuationRequests } from "@/db/schema";
+import { selectedVariant } from "@/services/vehicleCatalogService";
 
 export async function createValuationRequest(payload: ValuationRequest) {
   const { getDb } = await import("@/db");
@@ -14,6 +15,12 @@ export async function createValuationRequest(payload: ValuationRequest) {
       transmission: payload.transmission,
       engine: payload.engine,
       trim: payload.trim,
+      version: payload.version,
+      inspection: payload.inspection,
+      factoryEquipment: selectedVariant(payload)?.factoryEquipment ?? [],
+      catalogSource: selectedVariant(payload)?.sourceUrl ?? null,
+      optionalEquipment: payload.optionalEquipment,
+      preferredContactMethod: payload.preferredContactMethod,
       replacedParts: payload.replacedParts,
       paintedParts: payload.paintedParts,
       damageAmount: payload.damageAmount,
