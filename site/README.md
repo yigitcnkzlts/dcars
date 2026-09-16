@@ -126,4 +126,6 @@ The portable build runs Vinext directly without a host `timeout` command. The ma
 - [Drizzle D1 Guide](https://orm.drizzle.team/docs/get-started/d1-new)
 # Araç danışmanı yapılandırması
 
-Araç danışmanının gerçek sohbet yanıtları için sunucu ortamında `AI_GATEWAY_API_KEY` tanımlayın. İsteğe bağlı `AI_GATEWAY_MODEL` ile model değiştirilebilir; varsayılan model `openai/gpt-5.4-mini` olarak ayarlanmıştır. Anahtarı istemci koduna veya depoya eklemeyin. Anahtar yoksa sohbet API'si 503 yanıtıyla yapılandırma eksikliğini bildirir.
+Araç danışmanının gerçek sohbet yanıtları için sunucu ortamında `AI_GATEWAY_API_KEY` veya `OPENAI_API_KEY` tanımlayın. İsteğe bağlı `AI_GATEWAY_MODEL` ile model değiştirilebilir; varsayılan model Gateway için `openai/gpt-5.4-mini`, doğrudan OpenAI için `gpt-5.4-mini` olarak ayarlanmıştır. Anahtarı istemci koduna veya depoya eklemeyin. Anahtar yoksa sohbet API'si 503 yanıtıyla yapılandırma eksikliğini bildirir.
+
+Başvuru süreci: `/basvuru-takip` numara ve telefonla gerçek kayıt durumunu gösterir. Yönetici sunucu ortamında `VALUATION_ADMIN_TOKEN` tanımladıktan sonra `/yonetim/basvurular` ekranından son 50 başvuruyu inceleyip durumu, teklif aralığını ve randevu onayını güncelleyebilir. Yönetim anahtarı tarayıcıda saklanmaz. Teklif aralığı uzman tarafından girilir; otomatik piyasa verisi olmadığı için sistem aralık uydurmaz. Teklif hazır olduğunda müşteri uygun zamanını seçip randevu talebi oluşturabilir. Onaylanmamış zaman müşteriye kesin randevu olarak gösterilmez.
