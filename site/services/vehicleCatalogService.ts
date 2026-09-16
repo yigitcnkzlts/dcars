@@ -18,3 +18,11 @@ export function optionsFor(selection: Partial<VehicleSelection>, field: Selectio
 export function selectedVariant(selection: Partial<VehicleSelection>): VehicleVariant | undefined {
   return verifiedVariants.find((item) => item.year === selection.year && item.brand === selection.brand && item.model === selection.model && item.engine === selection.engine && item.fuelType === selection.fuelType && item.transmission === selection.transmission && item.version === selection.version && item.trim === selection.trim);
 }
+
+export function trimOptionsFor(selection: Partial<VehicleSelection>): string[] {
+  return [...new Set(variantsFor(selection.year ?? 0, selection.brand ?? "", selection.model ?? "")
+    .filter((item) => (!selection.engine || item.engine === selection.engine) &&
+      (!selection.fuelType || item.fuelType === selection.fuelType) &&
+      (!selection.transmission || item.transmission === selection.transmission))
+    .map((item) => item.trim))];
+}
