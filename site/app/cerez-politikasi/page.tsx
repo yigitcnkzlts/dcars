@@ -1,0 +1,2 @@
+import { LegalPage } from "@/components/layout/LegalPage";
+export default function Page() { return <LegalPage eyebrow="WEB SİTESİ" title="Çerez Politikası"><h2>Çerezlerin kullanımı</h2><p>Web sitesi, temel işlevlerin çalışması ve deneyimin geliştirilmesi amacıyla sınırlı çerezler kullanabilir.</p><h2>Tercihleriniz</h2><p>Tarayıcı ayarlarınız üzerinden çerezleri silebilir veya engelleyebilirsiniz. Zorunlu çerezlerin kapatılması bazı işlevleri etkileyebilir.</p></LegalPage>; }
