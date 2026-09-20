@@ -29,15 +29,21 @@ export function ValuationWizard({ vehicle, onClose }: Props) {
   const [error, setError] = useState("");
   const [requestId, setRequestId] = useState<number | string | null>(null);
   const photoUrls = useRef<string[]>([]);
+  const draftRestored = useRef(false);
 
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem(draftKey);
-      if (saved) setForm({ ...initial, ...JSON.parse(saved), ...vehicle });
-    } catch { /* An unreadable draft should not prevent a new request. */ }
+    draftRestored.current = false;
+    const timer = window.setTimeout(() => {
+      try {
+        const saved = localStorage.getItem(draftKey);
+        if (saved) setForm({ ...initial, ...JSON.parse(saved), ...vehicle });
+      } catch { /* An unreadable draft should not prevent a new request. */ }
+      draftRestored.current = true;
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, [vehicle]);
   useEffect(() => {
-    if (!submitted) localStorage.setItem(draftKey, JSON.stringify({ year: form.year, brand: form.brand, model: form.model, mileage: form.mileage, fuelType: form.fuelType, transmission: form.transmission, engine: form.engine, trim: form.trim, color: form.color, replacedParts: form.replacedParts, paintedParts: form.paintedParts, damageAmount: form.damageAmount, severeDamage: form.severeDamage, condition: form.condition, accidentStatus: form.accidentStatus, damageNotes: form.damageNotes, expectedPrice: form.expectedPrice, saleTiming: form.saleTiming }));
+    if (draftRestored.current && !submitted) localStorage.setItem(draftKey, JSON.stringify({ year: form.year, brand: form.brand, model: form.model, mileage: form.mileage, fuelType: form.fuelType, transmission: form.transmission, engine: form.engine, trim: form.trim, color: form.color, replacedParts: form.replacedParts, paintedParts: form.paintedParts, damageAmount: form.damageAmount, severeDamage: form.severeDamage, condition: form.condition, accidentStatus: form.accidentStatus, damageNotes: form.damageNotes, expectedPrice: form.expectedPrice, saleTiming: form.saleTiming }));
   }, [form, submitted]);
   useEffect(() => () => { photoUrls.current.forEach((url) => URL.revokeObjectURL(url)); }, []);
 

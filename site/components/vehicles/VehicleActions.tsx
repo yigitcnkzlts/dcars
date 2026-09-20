@@ -6,7 +6,7 @@ import { Heart, Share2 } from "lucide-react";
 export function VehicleActions({ vehicleId, title }: { vehicleId: string; title: string }) {
   const [saved, setSaved] = useState(false);
   const [notice, setNotice] = useState("");
-  useEffect(() => { setSaved(localStorage.getItem(`dcars-saved-${vehicleId}`) === "true"); }, [vehicleId]);
+  useEffect(() => { const timer = window.setTimeout(() => setSaved(localStorage.getItem(`dcars-saved-${vehicleId}`) === "true"), 0); return () => window.clearTimeout(timer); }, [vehicleId]);
   const toggleSaved = () => {
     const next = !saved;
     setSaved(next);

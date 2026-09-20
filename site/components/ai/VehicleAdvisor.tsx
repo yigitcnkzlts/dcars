@@ -19,7 +19,7 @@ export function VehicleAdvisor({ vehicle }: { vehicle?: VehicleContext }) {
     setMessages((current) => [...current, { role: "user", content: message }]);
     setLoading(true);
     try {
-      const response = await fetch("/api/ai/vehicle-advisor", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message, history: messages.slice(-8), vehicle }) });
+      const response = await fetch("/api/ai/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message, history: messages.slice(-8), vehicle }) });
       const data = await response.json() as { answer?: string; error?: string };
       if (!response.ok) throw new Error(data.error);
       setMessages((current) => [...current, { role: "assistant", content: data.answer ?? "Bu soruyu şu an yanıtlayamıyorum." }]);

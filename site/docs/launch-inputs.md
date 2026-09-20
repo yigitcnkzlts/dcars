@@ -17,7 +17,7 @@ Bu bilgiler tamamlanana kadar `/aydinlatma-metni` sayfası nihai metin olarak su
 
 ## Sunucu yapılandırması
 
-- AI sohbeti için `OPENAI_API_KEY` veya `AI_GATEWAY_API_KEY`
+- AI sohbeti için sunucuda `OPENAI_API_KEY`
 - Başvuru yönetimi için güçlü ve gizli `VALUATION_ADMIN_TOKEN`
 - Başvuru ve fotoğraf kayıtları için çalışan `DB` ve `BUCKET` bağları
 
