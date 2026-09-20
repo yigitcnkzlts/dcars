@@ -21,6 +21,17 @@ const variants = rows.filter((row) => row.isActive === true).map((row) => ({
   trim: row.trim.trim(),
   factoryEquipment: row.factoryEquipment ?? [],
   sourceUrl: row.sourceUrl.trim(),
+  generation: row.generation.trim(),
+  yearFrom: row.year,
+  yearTo: row.year,
+  bodyType: row.bodyType?.trim() || undefined,
+  displacementCc: row.engineCc ?? undefined,
+  powerHp: row.powerHp ?? undefined,
+  motorPowerKw: row.powerKw ?? undefined,
+  driveType: row.driveType.trim(),
+  verified: true,
+  sourceUrls: [row.sourceUrl.trim()],
+  lastUpdated: new Date().toISOString().slice(0, 10),
 }));
 
 const target = fileURLToPath(new URL("../data/vehicle-catalog/variants.imported.json", import.meta.url));

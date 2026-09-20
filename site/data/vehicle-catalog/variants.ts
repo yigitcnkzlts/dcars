@@ -1,4 +1,7 @@
 import importedVariants from "./variants.imported.json";
+import { peugeotVariants } from "./peugeot";
+import { renaultVariants } from "./renault";
+import { volkswagenVariants } from "./volkswagen";
 
 export type VehicleVariant = {
   year: number;
@@ -11,6 +14,17 @@ export type VehicleVariant = {
   trim: string;
   factoryEquipment: string[];
   sourceUrl: string;
+  generation?: string;
+  yearFrom?: number;
+  yearTo?: number;
+  bodyType?: string;
+  displacementCc?: number;
+  powerHp?: number;
+  motorPowerKw?: number;
+  driveType?: string;
+  verified?: boolean;
+  lastUpdated?: string;
+  sourceUrls?: string[];
 };
 
 // Source-backed examples only. This is not a complete Turkish vehicle catalog.
@@ -51,4 +65,14 @@ const curatedVariants: VehicleVariant[] = [
   ...clio2020.map(({ engine, fuelType, transmission, trim }) => ({ year: 2020, brand: "Renault", model: "Clio", engine, fuelType, transmission, version: `${engine} · ${transmission}`, trim, factoryEquipment: [], sourceUrl: clio2020Source })),
 ];
 
-export const verifiedVariants: VehicleVariant[] = [...new Map([...curatedVariants, ...(importedVariants as VehicleVariant[])].map((variant) => [[variant.year, variant.brand, variant.model, variant.engine, variant.fuelType, variant.transmission, variant.version, variant.trim].join("|"), variant])).values()];
+const curatedWithGeneration = curatedVariants.map((variant): VehicleVariant => ({
+  ...variant,
+  generation: variant.brand === "Renault" ? "Clio V" : variant.brand === "Nissan" ? (variant.year === 2019 ? "Qashqai J11" : "Qashqai J12") : "Corolla E210",
+  yearFrom: variant.year,
+  yearTo: variant.year,
+  sourceUrls: [variant.sourceUrl],
+  verified: true,
+  lastUpdated: "2026-09-21",
+}));
+
+export const verifiedVariants: VehicleVariant[] = [...new Map([...curatedWithGeneration, ...peugeotVariants, ...renaultVariants, ...volkswagenVariants, ...(importedVariants as VehicleVariant[])].map((variant) => [[variant.year, variant.brand, variant.model, variant.generation, variant.engine, variant.fuelType, variant.transmission, variant.version, variant.trim].join("|"), variant])).values()];

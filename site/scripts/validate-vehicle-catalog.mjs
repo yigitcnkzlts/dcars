@@ -24,7 +24,9 @@ for (const [index, row] of rows.entries()) {
     if ((start != null && (!Number.isInteger(start) || row.year < start)) || (end != null && (!Number.isInteger(end) || row.year > end)) || (start != null && end != null && end < start)) errors.push(`${label}: ${kind} yılı uyuşmuyor`);
   }
   if (row.engineCc != null && (!Number.isInteger(row.engineCc) || row.engineCc <= 0)) errors.push(`${label}: geçersiz motor hacmi`);
+  if (row.fuelType === "Elektrik" && row.engineCc != null) errors.push(`${label}: elektrikli araçta motor hacmi olamaz`);
   if (row.powerHp != null && (!Number.isInteger(row.powerHp) || row.powerHp <= 0)) errors.push(`${label}: geçersiz beygir değeri`);
+  if (row.powerKw != null && (!Number.isInteger(row.powerKw) || row.powerKw <= 0)) errors.push(`${label}: geçersiz elektrik motoru gücü`);
   if (row.market !== "TR") errors.push(`${label}: market TR olmalı`);
   if (typeof row.isActive !== "boolean") errors.push(`${label}: isActive boolean olmalı`);
   if (row.factoryEquipment != null && (!Array.isArray(row.factoryEquipment) || row.factoryEquipment.length > 100 || !row.factoryEquipment.every((item) => typeof item === "string" && item.length <= 120))) errors.push(`${label}: factoryEquipment geçersiz`);
