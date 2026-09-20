@@ -16,7 +16,7 @@ export function getModelsForBrand(brand?: string): string[] {
 const additionalModels: Record<string, string[]> = {
   "TOFAŞ": ["Murat 124", "Murat 131"],
   "Renault": ["Renault 9", "Renault 11", "Renault 12", "Renault 19", "Broadway", "Spring", "Fairway", "Flash", "Toros", "Symbol", "Thalia", "Laguna", "Latitude", "Scenic", "Talisman", "Rafale", "Duster"],
-  "Fiat": ["Uno", "Tempra", "Palio", "Siena", "Albea", "Marea", "Brava", "Bravo", "Punto", "Grande Punto", "500X", "500L"],
+  "Fiat": ["Uno", "Tempra", "Palio", "Siena", "Albea", "Marea", "Brava", "Bravo", "Punto", "Grande Punto", "500X", "500L", "Egea Hatchback", "Egea Station Wagon"],
   "Ford": ["Taunus", "Escort", "Fusion", "Mondeo", "B-Max", "C-Max", "S-Max", "Mustang Mach-E", "Courier", "Connect", "Tourneo", "Tourneo Connect"],
   "Opel": ["Vectra", "Omega", "Calibra", "Tigra", "Meriva", "Zafira", "Crossland", "Frontera", "Combo"],
   "Volkswagen": ["Bora", "Scirocco", "Beetle", "Eos", "CC", "Taigo", "Tayron", "Caddy", "Caravelle", "Amarok", "ID.3", "ID.4", "ID.5", "ID.7", "Tiguan Allspace", "Passat Variant"],

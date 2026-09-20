@@ -26,7 +26,9 @@ export async function POST(request: Request) {
     if (typeof raw !== "string") return Response.json({ error: "Araç bilgileri eksik." }, { status: 400 });
     const payload = JSON.parse(raw) as Partial<ValuationRequest>;
     if (!payload.year || !payload.brand?.trim() || !payload.model?.trim() || !Number.isFinite(Number(payload.mileage)) || Number(payload.mileage) < 0 || !payload.firstName?.trim() || !payload.lastName?.trim() || !/^0?5\d{9}$/.test((payload.phone ?? "").replace(/\s/g, "")) || !/^\S+@\S+\.\S+$/.test(payload.email ?? "") || JSON.stringify(payload).length > 16_000) return Response.json({ error: "Zorunlu alanları kontrol edin." }, { status: 400 });
-    if ((payload.version !== undefined && (typeof payload.version !== "string" || payload.version.length > 120)) ||
+    if ((payload.catalogMatched !== undefined && typeof payload.catalogMatched !== "boolean") ||
+        (payload.generation !== undefined && (typeof payload.generation !== "string" || payload.generation.length > 80)) ||
+        (payload.version !== undefined && (typeof payload.version !== "string" || payload.version.length > 120)) ||
         (payload.optionalEquipment !== undefined && (!Array.isArray(payload.optionalEquipment) || payload.optionalEquipment.length > 20 || !payload.optionalEquipment.every((item) => typeof item === "string" && item.length <= 80))) ||
         (payload.inspection !== undefined && (typeof payload.inspection !== "object" || payload.inspection === null || Array.isArray(payload.inspection) || Object.keys(payload.inspection).length > 13 || !Object.values(payload.inspection).every((value) => ["Orijinal", "Lokal Boyalı", "Boyalı", "Değişen"].includes(value)))) ||
         (payload.preferredContactMethod !== undefined && !["Telefon", "WhatsApp", "E-posta"].includes(payload.preferredContactMethod))) return Response.json({ error: "Araç detaylarını kontrol edin." }, { status: 400 });

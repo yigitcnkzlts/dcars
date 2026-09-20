@@ -28,9 +28,12 @@ for (const [index, row] of rows.entries()) {
   if (row.powerHp != null && (!Number.isInteger(row.powerHp) || row.powerHp <= 0)) errors.push(`${label}: geçersiz beygir değeri`);
   if (row.powerKw != null && (!Number.isInteger(row.powerKw) || row.powerKw <= 0)) errors.push(`${label}: geçersiz elektrik motoru gücü`);
   if (row.market !== "TR") errors.push(`${label}: market TR olmalı`);
+  if (!["official", "trusted", "unverified"].includes(row.verifiedLevel)) errors.push(`${label}: verification level eksik veya geçersiz`);
+  if (row.verifiedLevel === "trusted" && (!Array.isArray(row.sourceUrls) || new Set(row.sourceUrls).size < 2)) errors.push(`${label}: trusted kayıt için iki ayrı kaynak gerekli`);
   if (typeof row.isActive !== "boolean") errors.push(`${label}: isActive boolean olmalı`);
   if (row.factoryEquipment != null && (!Array.isArray(row.factoryEquipment) || row.factoryEquipment.length > 100 || !row.factoryEquipment.every((item) => typeof item === "string" && item.length <= 120))) errors.push(`${label}: factoryEquipment geçersiz`);
   try { if (!["http:", "https:"].includes(new URL(row.sourceUrl).protocol)) throw new Error(); } catch { errors.push(`${label}: kaynak URL geçersiz`); }
+  if (row.sourceUrls != null && (!Array.isArray(row.sourceUrls) || row.sourceUrls.length === 0 || row.sourceUrls.some((url) => { try { return !["http:", "https:"].includes(new URL(url).protocol); } catch { return true; } }))) errors.push(`${label}: kaynak URL listesi geçersiz`);
   if (row.id != null) { if (ids.has(row.id)) errors.push(`${label}: tekrarlı id`); ids.add(row.id); }
   const key = [row.brand, row.model, row.generation, row.year, row.engineName, row.transmission, row.driveType, row.trim].join("|").toLocaleLowerCase("tr-TR");
   if (combinations.has(key)) errors.push(`${label}: tekrarlı varyant`);

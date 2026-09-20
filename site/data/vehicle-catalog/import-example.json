@@ -18,6 +18,8 @@
     "trim": "Sky Pack",
     "market": "TR",
     "isActive": false,
+    "verifiedLevel": "official",
+    "sourceUrls": ["https://www.nissan.com.tr/content/dam/Nissan/turkey/brochures/Nissan-Qashqai-Brosuru-Haziran-2019.pdf"],
     "sourceUrl": "https://www.nissan.com.tr/content/dam/Nissan/turkey/brochures/Nissan-Qashqai-Brosuru-Haziran-2019.pdf"
   }
 ]

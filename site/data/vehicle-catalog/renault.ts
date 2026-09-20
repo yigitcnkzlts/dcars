@@ -58,5 +58,6 @@ export const renaultVariants: VehicleVariant[] = combinations.flatMap((item) => 
   sourceUrl: item.sourceUrl,
   sourceUrls: [item.sourceUrl],
   verified: true,
+  verifiedLevel: "official",
   lastUpdated: "2026-09-21",
 })));

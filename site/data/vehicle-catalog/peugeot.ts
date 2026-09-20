@@ -17,4 +17,5 @@ export const peugeotVariants: VehicleVariant[] = offers.map((offer) => ({
   yearTo: offer.year,
   bodyType: offer.model === "2008" ? "SUV" : offer.model === "408" ? "Fastback" : "Hatchback",
   sourceUrls: [offer.sourceUrl],
+  verifiedLevel: "official",
 }));

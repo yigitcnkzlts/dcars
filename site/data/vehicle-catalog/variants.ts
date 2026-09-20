@@ -2,6 +2,7 @@ import importedVariants from "./variants.imported.json";
 import { peugeotVariants } from "./peugeot";
 import { renaultVariants } from "./renault";
 import { volkswagenVariants } from "./volkswagen";
+import { fiatVariants } from "./fiat";
 
 export type VehicleVariant = {
   year: number;
@@ -23,6 +24,7 @@ export type VehicleVariant = {
   motorPowerKw?: number;
   driveType?: string;
   verified?: boolean;
+  verifiedLevel?: "official" | "trusted" | "unverified";
   lastUpdated?: string;
   sourceUrls?: string[];
 };
@@ -72,7 +74,8 @@ const curatedWithGeneration = curatedVariants.map((variant): VehicleVariant => (
   yearTo: variant.year,
   sourceUrls: [variant.sourceUrl],
   verified: true,
+  verifiedLevel: "official",
   lastUpdated: "2026-09-21",
 }));
 
-export const verifiedVariants: VehicleVariant[] = [...new Map([...curatedWithGeneration, ...peugeotVariants, ...renaultVariants, ...volkswagenVariants, ...(importedVariants as VehicleVariant[])].map((variant) => [[variant.year, variant.brand, variant.model, variant.generation, variant.engine, variant.fuelType, variant.transmission, variant.version, variant.trim].join("|"), variant])).values()];
+export const verifiedVariants: VehicleVariant[] = [...new Map([...curatedWithGeneration, ...peugeotVariants, ...renaultVariants, ...volkswagenVariants, ...fiatVariants, ...(importedVariants as VehicleVariant[])].filter((variant) => variant.verifiedLevel === "official" || variant.verifiedLevel === "trusted").map((variant) => [[variant.year, variant.brand, variant.model, variant.generation, variant.engine, variant.fuelType, variant.transmission, variant.version, variant.trim].join("|"), variant])).values()];

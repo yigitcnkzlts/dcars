@@ -10,7 +10,7 @@ if (!file) {
 // Runs the full range, source, and duplicate validation before changing the site catalog.
 await import("./validate-vehicle-catalog.mjs");
 const rows = JSON.parse(await readFile(file, "utf8"));
-const variants = rows.filter((row) => row.isActive === true).map((row) => ({
+const variants = rows.filter((row) => row.isActive === true && row.verifiedLevel !== "unverified").map((row) => ({
   year: row.year,
   brand: row.brand.trim(),
   model: row.model.trim(),
@@ -30,6 +30,7 @@ const variants = rows.filter((row) => row.isActive === true).map((row) => ({
   motorPowerKw: row.powerKw ?? undefined,
   driveType: row.driveType.trim(),
   verified: true,
+  verifiedLevel: row.verifiedLevel,
   sourceUrls: [row.sourceUrl.trim()],
   lastUpdated: new Date().toISOString().slice(0, 10),
 }));

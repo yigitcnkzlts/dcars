@@ -6,6 +6,8 @@ export type VehicleInspection = Record<InspectionPart, InspectionStatus>;
 export type ContactMethod = "Telefon" | "WhatsApp" | "E-posta";
 
 export type ValuationRequest = VehicleContext & {
+  generation?: string;
+  catalogMatched?: boolean;
   mileage?: number;
   fuelType?: string;
   transmission?: string;
