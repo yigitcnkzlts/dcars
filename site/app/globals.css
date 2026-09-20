@@ -2578,3 +2578,6 @@ h1 em {
 .management-list article { padding: 20px; border: 1px solid #e4ded4; border-radius: 10px; background: #faf8f3; }
 .management-list article h2 { margin: 7px 0; font-size: 20px; }
 .management-list article span { color: #776e61; font-size: 12px; }
+.privacy-controls { margin-top: 28px; padding: 22px; border: 1px solid #e4ded4; border-radius: 10px; background: #faf8f3; }
+.privacy-controls button { margin-top: 8px; padding: 11px 15px; border: 1px solid #aa8d5f; border-radius: 5px; background: #fff; color: #443725; cursor: pointer; }
+.privacy-controls [role="status"] { color: #355c32; }

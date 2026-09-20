@@ -1,3 +1,5 @@
+import importedVariants from "./variants.imported.json";
+
 export type VehicleVariant = {
   year: number;
   brand: string;
@@ -39,10 +41,12 @@ const clio2020 = [
   { trim: "Icon", engine: "1.5 Blue dCi 115 bg", fuelType: "Dizel", transmission: "Manuel" },
 ];
 
-export const verifiedVariants: VehicleVariant[] = [
+const curatedVariants: VehicleVariant[] = [
   ...petrolTrims.map((trim) => ({ year: 2024, brand: "Toyota", model: "Corolla", engine: "1.5 L", fuelType: "Benzin", transmission: "Multidrive S", version: "1.5L Benzinli Multidrive S", trim, factoryEquipment: [], sourceUrl })),
   ...hybridTrims.map((trim) => ({ year: 2024, brand: "Toyota", model: "Corolla", engine: "1.8 L", fuelType: "Hibrit", transmission: "e-CVT", version: "1.8L Hybrid e-CVT", trim, factoryEquipment: [], sourceUrl })),
   ...qashqai2019.flatMap(({ engine, fuelType, transmission, trims }) => trims.map((trim) => ({ year: 2019, brand: "Nissan", model: "Qashqai", engine, fuelType, transmission, version: `${engine} · ${transmission}`, trim, factoryEquipment: [], sourceUrl: qashqai2019Source }))),
   ...qashqai2026Trims.map((trim) => ({ year: 2026, brand: "Nissan", model: "Qashqai", engine: "1.3 DIG-T Mild Hybrid 158 PS", fuelType: "Hibrit", transmission: "Otomatik", version: "1.3 DIG-T Mild Hybrid 158 PS · Otomatik", trim, factoryEquipment: [], sourceUrl: qashqai2026Source })),
   ...clio2020.map(({ engine, fuelType, transmission, trim }) => ({ year: 2020, brand: "Renault", model: "Clio", engine, fuelType, transmission, version: `${engine} · ${transmission}`, trim, factoryEquipment: [], sourceUrl: clio2020Source })),
 ];
+
+export const verifiedVariants: VehicleVariant[] = [...new Map([...curatedVariants, ...(importedVariants as VehicleVariant[])].map((variant) => [[variant.year, variant.brand, variant.model, variant.engine, variant.fuelType, variant.transmission, variant.version, variant.trim].join("|"), variant])).values()];

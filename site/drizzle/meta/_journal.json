@@ -15,6 +15,13 @@
       "when": 1789547145579,
       "tag": "0001_sharp_leopardon",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1789591926358,
+      "tag": "0002_aberrant_spacker_dave",
+      "breakpoints": true
     }
   ]
 }

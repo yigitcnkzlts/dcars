@@ -16,6 +16,42 @@ export const vehicleModels = sqliteTable("vehicle_models", {
 	active: integer("active", { mode: "boolean" }).notNull().default(true),
 });
 
+export const vehicleGenerations = sqliteTable("vehicle_generations", {
+	id: integer("id").primaryKey({ autoIncrement: true }),
+	modelId: integer("model_id").notNull().references(() => vehicleModels.id),
+	name: text("name").notNull(),
+	code: text("code"),
+	bodyType: text("body_type"),
+	startYear: integer("start_year").notNull(),
+	endYear: integer("end_year"),
+	sourceUrl: text("source_url").notNull(),
+});
+
+export const vehicleEngines = sqliteTable("vehicle_engines", {
+	id: integer("id").primaryKey({ autoIncrement: true }),
+	generationId: integer("generation_id").notNull().references(() => vehicleGenerations.id),
+	name: text("name").notNull(),
+	engineCc: integer("engine_cc"),
+	powerHp: integer("power_hp"),
+	powerKw: integer("power_kw"),
+	fuelType: text("fuel_type").notNull(),
+	transmission: text("transmission").notNull(),
+	transmissionType: text("transmission_type"),
+	driveType: text("drive_type"),
+	startYear: integer("start_year").notNull(),
+	endYear: integer("end_year"),
+	sourceUrl: text("source_url").notNull(),
+});
+
+export const vehicleTrims = sqliteTable("vehicle_trims", {
+	id: integer("id").primaryKey({ autoIncrement: true }),
+	generationId: integer("generation_id").notNull().references(() => vehicleGenerations.id),
+	name: text("name").notNull(),
+	startYear: integer("start_year").notNull(),
+	endYear: integer("end_year"),
+	sourceUrl: text("source_url").notNull(),
+});
+
 export const vehicleVariants = sqliteTable("vehicle_variants", {
 	id: integer("id").primaryKey({ autoIncrement: true }),
 	modelId: integer("model_id").notNull().references(() => vehicleModels.id),
@@ -24,6 +60,12 @@ export const vehicleVariants = sqliteTable("vehicle_variants", {
 	transmission: text("transmission"),
 	engine: text("engine"),
 	trim: text("trim"),
+	generationId: integer("generation_id").references(() => vehicleGenerations.id),
+	engineId: integer("engine_id").references(() => vehicleEngines.id),
+	trimId: integer("trim_id").references(() => vehicleTrims.id),
+	market: text("market").notNull().default("TR"),
+	sourceUrl: text("source_url"),
+	active: integer("active", { mode: "boolean" }).notNull().default(true),
 });
 
 export const valuationRequests = sqliteTable("valuation_requests", {
