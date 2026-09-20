@@ -15,6 +15,7 @@ export type VehicleVariant = {
 
 // Source-backed examples only. This is not a complete Turkish vehicle catalog.
 const sourceUrl = "https://www.toyota.com.tr/content/dam/toyota/nmsc/turkey/cars/e-brosur/corolla/TOYOTA_YeniCorolla_Teknik_Ozellikler_2024.pdf";
+const corolla2026Source = "https://www.toyota.com.tr/content/dam/toyota/nmsc/turkey/cars/e-brosur/corolla/Corolla-Teknik-ve-Donanim-Ozellikleri-01-2026.pdf";
 const petrolTrims = ["Vision Plus", "Dream", "Dream X-Pack", "Flame X-Pack", "Passion X-Pack"];
 const hybridTrims = ["Hybrid Dream", "Hybrid Dream X-Pack", "Hybrid Flame X-Pack", "Hybrid Passion X-Pack"];
 const qashqai2019Source = "https://www.nissan.com.tr/content/dam/Nissan/turkey/brochures/Nissan-Qashqai-Brosuru-Haziran-2019.pdf";
@@ -42,6 +43,7 @@ const clio2020 = [
 ];
 
 const curatedVariants: VehicleVariant[] = [
+  ...["Vision Plus", "Dream X-Pack", "Passion X-Pack"].map((trim) => ({ year: 2026, brand: "Toyota", model: "Corolla", engine: "1.5 L", fuelType: "Benzin", transmission: "Multidrive S", version: "1.5L Benzinli Multidrive S", trim, factoryEquipment: [], sourceUrl: corolla2026Source })),
   ...petrolTrims.map((trim) => ({ year: 2024, brand: "Toyota", model: "Corolla", engine: "1.5 L", fuelType: "Benzin", transmission: "Multidrive S", version: "1.5L Benzinli Multidrive S", trim, factoryEquipment: [], sourceUrl })),
   ...hybridTrims.map((trim) => ({ year: 2024, brand: "Toyota", model: "Corolla", engine: "1.8 L", fuelType: "Hibrit", transmission: "e-CVT", version: "1.8L Hybrid e-CVT", trim, factoryEquipment: [], sourceUrl })),
   ...qashqai2019.flatMap(({ engine, fuelType, transmission, trims }) => trims.map((trim) => ({ year: 2019, brand: "Nissan", model: "Qashqai", engine, fuelType, transmission, version: `${engine} · ${transmission}`, trim, factoryEquipment: [], sourceUrl: qashqai2019Source }))),
