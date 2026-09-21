@@ -20,7 +20,9 @@ const has = (year: number, brand: string, model: string, engine: string, transmi
 assert(has(2019, "Nissan", "Qashqai", "1.3 DIG-T", "7 ileri DCT", "Sky Pack"));
 assert(has(2020, "Renault", "Clio", "1.3 TCe", "EDC", "Icon"));
 assert(has(2020, "Fiat", "Egea", "1.3 Multijet", "Manuel", "Urban Plus"));
+assert(has(2021, "BMW", "4 Serisi", "420i", "Otomatik", "Edition M Sport"));
 assert(!has(2020, "Renault", "Clio", "1.3 TCe", "EDC", "Joy"));
+assert(!verifiedVariants.some((row) => row.year === 2021 && row.brand === "Chery"));
 
 const brands = new Set(verifiedVariants.map((row) => row.brand));
 const models = new Set(verifiedVariants.map((row) => `${row.brand}|${row.model}`));

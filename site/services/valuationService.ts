@@ -33,12 +33,15 @@ export async function createValuationRequest(payload: ValuationRequest) {
       damageNotes: payload.damageNotes,
       expectedPrice: payload.expectedPrice,
       saleTiming: payload.saleTiming,
+      city: payload.city,
+      plate: payload.plate,
+      callRequested: payload.callRequested,
       preferredContactTime: payload.preferredContactTime,
     },
     firstName: payload.firstName,
     lastName: payload.lastName,
     phone: payload.phone.replace(/\s/g, ""),
-    email: payload.email,
+    email: payload.email ?? "",
   }).returning();
   return request;
 }

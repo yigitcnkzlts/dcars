@@ -28,6 +28,9 @@ export type ValuationRequest = VehicleContext & {
   damageNotes?: string;
   expectedPrice?: string;
   saleTiming?: string;
+  city?: string;
+  plate?: string;
+  callRequested?: boolean;
   preferredContactTime?: string;
   firstName: string;
   lastName: string;
