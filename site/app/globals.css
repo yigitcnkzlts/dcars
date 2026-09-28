@@ -2853,6 +2853,99 @@ h1 em {
 .status-offer, .status-booking { margin: 17px 0; padding: 17px; border: 1px solid #e1d8c9; border-radius: 10px; background: #faf8f3; }
 .status-offer p { margin: 8px 0; font-size: clamp(19px, 3vw, 27px); font-weight: 600; }
 .status-booking input { display: block; max-width: 300px; width: 100%; margin: 10px 0; padding: 10px; border: 1px solid #d4cabd; }
+
+/* Guided quick valuation */
+.valuation-shell { display: grid; gap: clamp(28px,4vw,54px); }
+.valuation-card--wizard { display: block; max-width: 1080px; margin: 0 auto; padding: 0; overflow: visible; border: 1px solid #ded8cc; border-radius: 18px; background: #fff; box-shadow: 0 24px 65px rgba(37,32,24,.09); }
+.valuation-progress { padding: 22px clamp(20px,3vw,38px) 20px; border-bottom: 1px solid #e9e4dc; background: linear-gradient(180deg,#fdfcf9,#faf8f3); border-radius: 18px 18px 0 0; }
+.valuation-progress ol { display: grid; grid-template-columns: repeat(5,1fr); gap: 8px; margin: 0; padding: 0; list-style: none; }
+.valuation-progress li { display: flex; align-items: center; gap: 8px; color: #938c81; font-size: 12px; }
+.valuation-progress li i { display: grid; place-items: center; width: 26px; height: 26px; flex: none; border: 1px solid #d8d0c4; border-radius: 50%; background: #fff; font-style: normal; }
+.valuation-progress li.is-active { color: #332d25; font-weight: 700; }
+.valuation-progress li.is-active i { border-color: #a88957; background: #a88957; color: #fff; box-shadow: 0 0 0 4px rgba(168,137,87,.11); }
+.valuation-progress li.is-complete { color: #6d604d; }
+.valuation-progress li.is-complete i { border-color: #c8b184; background: #f2eadc; color: #745a32; }
+.valuation-progress__mobile,.valuation-progress__bar { display: none; }
+.valuation-workspace { display: grid; grid-template-columns: minmax(0,1fr) 260px; gap: clamp(24px,3vw,38px); padding: clamp(24px,4vw,48px); }
+.valuation-stage { min-width: 0; }
+.valuation-step { display: grid; gap: 24px; }
+.valuation-step__heading span,.valuation-summary > span { color: #99784a; font-size: 10px; font-weight: 700; letter-spacing: .18em; }
+.valuation-step__heading h3 { margin: 7px 0 5px; color: #29251f; font-size: clamp(28px,3vw,39px); font-weight: 500; letter-spacing: -.035em; }
+.valuation-step__heading p { margin: 0; color: #777066; font-size: 14px; line-height: 1.6; }
+.valuation-summary { position: sticky; top: 95px; align-self: start; min-height: 220px; padding: 24px; border: 1px solid #e1d7c6; border-radius: 15px; background: linear-gradient(145deg,#faf7f0,#f4efe6); }
+.valuation-summary h4 { margin: 10px 0 18px; color: #29251f; font-size: 22px; font-weight: 500; letter-spacing: -.025em; }
+.valuation-summary p { color: #756e63; font-size: 13px; line-height: 1.55; }
+.valuation-summary dl { margin: 0; }
+.valuation-summary dl div { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-top: 1px solid #e3dacb; font-size: 12px; }
+.valuation-summary dt { color: #837b6f; }
+.valuation-summary dd { margin: 0; color: #302b24; font-weight: 650; text-align: right; overflow-wrap: anywhere; }
+.valuation-step .brand-picker { margin: 0; }
+.valuation-step .brand-popular { grid-template-columns: repeat(4,minmax(0,1fr)); }
+.valuation-step .brand-popular button { position: relative; min-height: 62px; border-radius: 11px; transition: transform .2s ease,border-color .2s ease,background .2s ease; }
+.valuation-step .brand-popular button[aria-pressed="true"] { border-color: #a88957; background: #f5efe3; box-shadow: inset 0 0 0 1px #a88957; }
+.year-picker,.search-choice { position: relative; }
+.year-picker__input,.search-choice__input { position: relative; }
+.year-picker__input > svg,.search-choice__input > svg { position: absolute; left: 15px; top: 50%; z-index: 1; color: #8e8579; transform: translateY(-50%); }
+.year-picker__input input,.search-choice__input input { width: 100%; min-height: 52px; padding-left: 43px; }
+.year-picker__results { display: grid; grid-template-columns: repeat(6,minmax(0,1fr)); gap: 7px; max-height: 180px; margin-top: 8px; padding: 10px; overflow: auto; border: 1px solid #dfd7cb; border-radius: 11px; background: #fff; box-shadow: 0 12px 28px rgba(42,35,25,.09); }
+.year-picker__results button { display: flex; align-items: center; justify-content: center; gap: 4px; min-height: 42px; border: 1px solid #e5ded3; border-radius: 8px; background: #fbfaf7; color: #39342d; cursor: pointer; }
+.year-picker__results button[aria-selected="true"] { border-color: #a88957; background: #f3ebdc; color: #6d522b; }
+.choice-grid { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 10px; }
+.choice-grid button,.mileage-shortcuts button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 44px; padding: 10px 15px; border: 1px solid #ddd5c9; border-radius: 10px; background: #fcfbf8; color: #3e3932; cursor: pointer; font: inherit; font-size: 13px; transition: transform .18s ease,border-color .18s ease,background .18s ease; }
+.choice-grid button[aria-pressed="true"],.mileage-shortcuts button[aria-pressed="true"] { border-color: #a88957; background: #f2e9d9; color: #674d27; box-shadow: inset 0 0 0 1px #a88957; }
+.choice-grid button.is-neutral { border-style: dashed; color: #6e685f; }
+.chip-choice { margin: 0; padding: 0; border: 0; }
+.chip-choice legend { margin-bottom: 9px; color: #565048; font-size: 13px; font-weight: 650; }
+.valuation-info { margin: 10px 0 0; padding: 11px 13px; border-left: 2px solid #b69a6e; background: #f7f3eb; color: #6e665b; font-size: 12px; line-height: 1.5; }
+.valuation-mileage .number-input { min-height: 58px; }
+.valuation-mileage .number-input > svg { margin-left: 16px; color: #94764a; }
+.valuation-mileage .number-input input { font-size: 20px; font-weight: 600; }
+.mileage-shortcuts { display: flex; flex-wrap: wrap; gap: 8px; }
+.valuation-actions { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-top: 34px; padding-top: 22px; border-top: 1px solid #ebe6de; }
+.valuation-actions > div { display: grid; justify-items: end; gap: 7px; }
+.valuation-back { display: inline-flex; align-items: center; gap: 7px; min-height: 44px; padding: 9px 0; border: 0; background: transparent; color: #625b52; cursor: pointer; }
+.valuation-back:disabled { opacity: .35; cursor: default; }
+.valuation-inline-hint { color: #746d63; font-size: 12px; }
+.wizard-progress--five { grid-template-columns: repeat(5,minmax(0,1fr)); }
+.wizard-grid--contact { margin-top: 28px; padding-top: 26px; border-top: 1px solid #e7e1d8; }
+
+@media (hover:hover) and (pointer:fine) {
+  .valuation-step .brand-popular button:hover,.choice-grid button:hover,.mileage-shortcuts button:hover,.year-picker__results button:hover { border-color: #b89b6d; background: #f8f3ea; transform: translateY(-2px); }
+}
+@media (max-width: 900px) {
+  .valuation-workspace { grid-template-columns: 1fr; }
+  .valuation-summary { position: static; min-height: 0; }
+  .valuation-summary dl { display: flex; flex-wrap: wrap; gap: 7px 18px; }
+  .valuation-summary dl div { display: block; padding: 6px 0; border: 0; }
+  .valuation-summary dd { text-align: left; }
+}
+@media (max-width: 700px) {
+  .valuation-card--wizard { border-radius: 14px; }
+  .valuation-progress { padding: 18px 20px; }
+  .valuation-progress ol { display: none; }
+  .valuation-progress__mobile { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 12px; }
+  .valuation-progress__mobile span { color: #8d8579; font-weight: 700; letter-spacing: .1em; }
+  .valuation-progress__mobile strong { color: #332d25; }
+  .valuation-progress__bar { display: block; height: 3px; margin-top: 12px; overflow: hidden; border-radius: 99px; background: #e8e1d5; }
+  .valuation-progress__bar span { display: block; height: 100%; border-radius: inherit; background: #aa8957; }
+  .valuation-workspace { padding: 24px 20px; }
+  .valuation-step .brand-popular { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .year-picker__results { grid-template-columns: repeat(3,minmax(0,1fr)); }
+  .valuation-summary { padding: 16px; }
+  .valuation-summary h4 { margin-bottom: 9px; font-size: 18px; }
+  .valuation-actions { align-items: center; }
+  .valuation-actions .button { padding: 13px 15px; }
+  .wizard-progress--five { grid-template-columns: repeat(5,minmax(0,1fr)); }
+}
+@media (max-width: 480px) {
+  .valuation-actions { gap: 9px; }
+  .valuation-actions .button { font-size: 12px; }
+  .valuation-actions > div { max-width: 72%; }
+  .choice-grid button,.mileage-shortcuts button { flex: 1 1 calc(50% - 8px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .valuation-step .brand-popular button,.choice-grid button,.mileage-shortcuts button,.year-picker__results button { transition: none; transform: none !important; }
+}
 .management-page { max-width: 1000px; margin: 50px auto; padding: 0 20px; color: #302b24; }
 .management-page > form, .management-actions { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; }
 .management-page label { display: grid; gap: 6px; }
