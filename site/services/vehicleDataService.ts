@@ -6,8 +6,12 @@ export const vehicleBrands: VehicleBrand[] = [
   ["Abarth", "500,595,695"], ["Acura", "ILX,MDX,RDX,TLX"], ["Aiways", "U5,U6"], ["Alpine", "A110"], ["Anadol", "A1,A2,STC-16"], ["BAIC", "X35,X55"], ["Buick", "Encore,Envision,LaCrosse"], ["Cadillac", "CTS,Escalade,XT5"], ["Chrysler", "300C,PT Cruiser,Voyager"], ["Daewoo", "Lanos,Matiz,Nubira"], ["Daihatsu", "Cuore,Sirion,Terios"], ["Dodge", "Challenger,Charger,Durango,Journey"], ["Geely", "Coolray,Emgrand,Monjaro"], ["Great Wall", "Haval,H6,Poer"], ["Hummer", "H2,H3"], ["Infiniti", "FX,Q30,Q50,QX70"], ["Lada", "Niva,Samara,Vesta"], ["Lancia", "Delta,Ypsilon"], ["Lincoln", "Aviator,Continental,Navigator"], ["Lotus", "Elise,Emira,Evora"], ["Lucid", "Air,Gravity"], ["Maxus", "eDeliver 3,eDeliver 9"], ["McLaren", "570S,720S,Artura"], ["Nio", "ET5,ET7,ES6"], ["Polestar", "2,3,4"], ["Proton", "Gen-2,Saga"], ["Rover", "25,45,75"], ["Seat Cupra", "Leon,Formentor"], ["Seres", "3,5"], ["Skywell", "ET5,HT-i"], ["Tata", "Indica,Indigo,Nexon"], ["TOFAŞ", "Doğan,Kartal,Şahin"], ["Voyah", "Free,Dream"], ["XPeng", "G6,G9,P7"], ["Zeekr", "001,X,7X"], ["DFSK", "Fengon 5,Fengon 500"], ["Hongqi", "E-HS9"], ["Jaecoo", "J7"], ["KGM", "Torres,Actyon,Tivoli,Korando,Musso,Rexton"], ["Leapmotor", "T03,C10"], ["Omoda", "5"], ["Rolls-Royce", "Ghost,Phantom,Cullinan,Spectre"]
 ].map(([name, models]) => ({ name, slug: name.toLowerCase().replaceAll(" ", "-"), models: models.split(",").map((model) => model.trim()) })).sort((a, b) => a.name.localeCompare(b.name, "tr-TR"));
 
+export function getPopularModelsForBrand(brand?: string): string[] {
+  return vehicleBrands.find((item) => item.name === brand)?.models ?? [];
+}
+
 export function getModelsForBrand(brand?: string): string[] {
-  const listed = vehicleBrands.find((item) => item.name === brand)?.models ?? [];
+  const listed = getPopularModelsForBrand(brand);
   return [...new Set([...listed, ...(additionalModels[brand ?? ""] ?? [])])].sort((a, b) => a.localeCompare(b, "tr-TR"));
 }
 

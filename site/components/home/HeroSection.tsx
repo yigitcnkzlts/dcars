@@ -1,53 +1,70 @@
 "use client";
 
-import { useEffect, useRef, useState, type PointerEvent } from "react";
-import { motion, useMotionValue, useReducedMotion, useSpring } from "framer-motion";
-import { ArrowDownRight, ArrowUpRight } from "lucide-react";
+import { FormEvent, useState } from "react";
+import { useRouter } from "next/navigation";
+import { ArrowRight } from "lucide-react";
 import Link from "@/components/layout/NativeLink";
 import Image from "next/image";
+import { vehicleBrands } from "@/services/vehicleDataService";
 
-const wordLines = [["ARACINI", "SAT."], ["TEKLİFİNİ", "AL."]] as const;
+const draftKey = "dcars-detailed-valuation-v1";
+const years = Array.from({ length: 25 }, (_, index) => new Date().getFullYear() + 1 - index);
 
 export function HeroSection() {
-  const reduceMotion = useReducedMotion();
-  const [parallaxEnabled, setParallaxEnabled] = useState(false);
-  const heroRef = useRef<HTMLElement>(null);
-  const pointerX = useMotionValue(0);
-  const pointerY = useMotionValue(0);
-  const carX = useSpring(pointerX, { stiffness: 95, damping: 22, mass: 0.7 });
-  const carY = useSpring(pointerY, { stiffness: 95, damping: 22, mass: 0.7 });
+  const router = useRouter();
+  const [year, setYear] = useState("");
+  const [brand, setBrand] = useState("");
 
-  useEffect(() => {
-    const query = window.matchMedia("(min-width: 1101px) and (hover: hover) and (pointer: fine)");
-    const update = () => setParallaxEnabled(query.matches && !reduceMotion);
-    update();
-    query.addEventListener("change", update);
-    return () => query.removeEventListener("change", update);
-  }, [reduceMotion]);
-
-  const updateParallax = (event: PointerEvent<HTMLElement>) => {
-    if (!parallaxEnabled || !heroRef.current) return;
-    const bounds = heroRef.current.getBoundingClientRect();
-    pointerX.set((((event.clientX - bounds.left) / bounds.width) - 0.5) * 20);
-    pointerY.set((((event.clientY - bounds.top) / bounds.height) - 0.5) * 14);
-  };
-
-  const resetParallax = () => {
-    pointerX.set(0);
-    pointerY.set(0);
+  const startValuation = (event: FormEvent) => {
+    event.preventDefault();
+    try {
+      const current = JSON.parse(localStorage.getItem(draftKey) || "{}") as { selection?: Record<string, unknown> };
+      localStorage.setItem(draftKey, JSON.stringify({
+        ...current,
+        selection: {
+          ...(current.selection ?? {}),
+          ...(year ? { year: Number(year) } : {}),
+          ...(brand ? { brand } : {}),
+        },
+        mileage: current.mileage ?? "",
+        color: current.color ?? "",
+        accidentStatus: current.accidentStatus ?? "",
+        damageAmount: current.damageAmount ?? "",
+        inspection: current.inspection,
+        optionalEquipment: current.optionalEquipment ?? [],
+      }));
+    } catch { /* Draft is optional; the valuation page still starts empty. */ }
+    router.push("/arac-degerleme");
   };
 
   return (
-    <section ref={heroRef} className="hero" aria-labelledby="hero-title" onPointerMove={updateParallax} onPointerLeave={resetParallax}>
-      <div className="hero__ambient" aria-hidden="true" />
+    <section className="hero" aria-labelledby="hero-title">
       <div className="hero__copy">
-        <motion.div className="eyebrow" initial={reduceMotion ? false : { opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={reduceMotion ? { duration: 0 } : { duration: 0.55, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}><span /> Aracını satmak isteyenler için</motion.div>
-        <h1 id="hero-title" aria-label="Aracını sat. Teklifini al.">{wordLines.map((line, lineIndex) => <span className="hero__title-line" key={lineIndex} aria-hidden="true">{line.map((word, wordIndex) => { const index = lineIndex * 2 + wordIndex; return <span className="hero__word-mask" key={word}><motion.span className={lineIndex === 1 ? "hero__word hero__word--muted" : "hero__word"} initial={reduceMotion ? false : { opacity: 0, y: "105%" }} animate={{ opacity: 1, y: 0 }} transition={reduceMotion ? { duration: 0 } : { duration: 0.7, delay: 0.18 + index * 0.07, ease: [0.22, 1, 0.36, 1] }}>{word}</motion.span></span>; })}</span>)}</h1>
-        <motion.p initial={reduceMotion ? false : { opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={reduceMotion ? { duration: 0 } : { duration: 0.65, delay: 0.55, ease: [0.22, 1, 0.36, 1] }}>Aracını birkaç adımda anlat. Hasar varsa fotoğraflarını ekle. Bilgiler incelendikten sonra sana özel teklif için iletişime geçelim.</motion.p>
-        <motion.div className="hero__actions" initial={reduceMotion ? false : { opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={reduceMotion ? { duration: 0 } : { duration: 0.6, delay: 0.68, ease: [0.22, 1, 0.36, 1] }}><Link className="button button--primary" href="/arac-degerleme">Ücretsiz teklif iste <ArrowUpRight size={17} /></Link><Link className="button button--ghost" href="/nasil-calisir">Nasıl çalışır? <ArrowDownRight size={17} /></Link></motion.div>
+        <p className="eyebrow">D CARS · Ücretsiz ön değerleme</p>
+        <h1 id="hero-title">Aracınızın değerini öğrenin, teklifinizi değerlendirin.</h1>
+        <p>Araç bilgilerinizi paylaşın. D CARS aracınızı değerlendirerek sonraki adımları sizinle planlasın.</p>
+        <Link className="button button--primary" href="/arac-degerleme">Ücretsiz Teklif Al <ArrowRight size={17} /></Link>
+        <form className="hero-start" onSubmit={startValuation}>
+          <label>
+            <span>Model yılı</span>
+            <select value={year} onChange={(event) => setYear(event.target.value)}>
+              <option value="">Seçin</option>
+              {years.map((item) => <option key={item} value={item}>{item}</option>)}
+            </select>
+          </label>
+          <label>
+            <span>Marka</span>
+            <select value={brand} onChange={(event) => setBrand(event.target.value)}>
+              <option value="">Seçin</option>
+              {vehicleBrands.map((item) => <option key={item.name} value={item.name}>{item.name}</option>)}
+            </select>
+          </label>
+          <button className="button button--primary" type="submit">Değerlemeye başla</button>
+        </form>
       </div>
-      <motion.div className="hero__visual" initial={reduceMotion ? false : { opacity: 0, scale: 0.96, x: 18, y: 8 }} animate={{ opacity: 1, scale: 1, x: 0, y: 0 }} transition={reduceMotion ? { duration: 0 } : { duration: 1.05, delay: 0.22, ease: [0.22, 1, 0.36, 1] }}><div className="hero__visual-glow" aria-hidden="true" /><motion.div className="hero__visual-stage" style={parallaxEnabled ? { x: carX, y: carY } : undefined}><Image src="/images/q8-cutout.png" alt="Siyah otomobil görseli" fill priority sizes="(max-width: 900px) 100vw, 55vw" style={{ objectFit: "contain" }} /></motion.div></motion.div>
-      <div className="hero__meta"><div><span>01</span><strong>Araç bilgilerini paylaş</strong></div><div><span>02</span><strong>Durumu fotoğraflarla göster</strong></div><div><span>03</span><strong>Teklifi değerlendir</strong></div></div>
+      <div className="hero__visual">
+        <Image src="/images/q8-cutout.png" alt="" fill sizes="(max-width: 900px) 100vw, 50vw" priority style={{ objectFit: "contain", objectPosition: "right center" }} />
+      </div>
     </section>
   );
 }
