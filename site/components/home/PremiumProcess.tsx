@@ -25,7 +25,7 @@ export function PremiumProcess() {
           </article>
         ))}
       </div>
-      <Link className="button button--primary" href="/arac-degerleme">Ücretsiz Teklif Al <ArrowRight size={16} /></Link>
+      <Link className="button button--primary" href="/arac-degerleme?new=1">Ücretsiz Teklif Al <ArrowRight size={16} /></Link>
     </section>
   );
 }

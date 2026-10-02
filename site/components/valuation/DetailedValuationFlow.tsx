@@ -53,12 +53,21 @@ export function DetailedValuationFlow({ onVehicleChange }: { onVehicleChange?: (
   useEffect(() => {
     const timer = window.setTimeout(() => {
       try {
-        const saved = localStorage.getItem(draftKey);
+        const startFresh = new URLSearchParams(window.location.search).get("new") === "1";
+        if (startFresh) {
+          localStorage.removeItem(draftKey);
+          window.history.replaceState({}, "", window.location.pathname);
+        }
+        const saved = startFresh ? null : localStorage.getItem(draftKey);
         if (saved) {
           const parsed = JSON.parse(saved) as Partial<Draft>;
           const next = { ...initialDraft(), ...parsed, inspection: { ...initialInspection(), ...parsed.inspection } };
           setDraft(next);
           setVehiclePhase(phaseFromDraft(next));
+        } else {
+          setDraft(initialDraft());
+          setVehiclePhase(0);
+          setStep(0);
         }
       } catch { /* Invalid drafts start fresh. */ }
       draftRestored.current = true;

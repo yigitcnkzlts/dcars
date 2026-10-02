@@ -43,6 +43,14 @@
 .valuation-page .vehicle-selection__summary dd button:hover { color: #9b7a47; text-decoration: underline; }
 .vehicle-selection__summary > p { font-size: 11px; line-height: 1.7; margin: 18px 0 0; color: #8a909b; }
 .selection-notice { border-left: 2px solid #c5ad86; background: #faf8f3; padding: 12px 14px; margin: 0 0 20px; color: #7d735f; font-size: 12px; line-height: 1.7; }
+.selection-source { display: flex; align-items: center; gap: 7px; margin: 0 0 14px; color: #557052; font-size: 12px; }
+.manual-version { display: grid; gap: 8px; margin-top: 14px; padding: 16px; border: 1px solid #e1e4e9; border-radius: 10px; background: #f8f9fb; }
+.manual-version label { color: #4f5663; font-size: 12px; font-weight: 600; }
+.manual-version > div { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+.manual-version input { min-width: 0; height: 44px; padding: 0 12px; border: 1px solid #dfe2e7; border-radius: 8px; background: #fff; color: #242b36; font: inherit; }
+.manual-version input:focus { outline: 2px solid #ac885238; border-color: #ac8852; }
+.manual-version button { padding: 0 16px; border: 0; border-radius: 8px; background: #2a303b; color: #fff; font: inherit; font-size: 12px; cursor: pointer; }
+.manual-version button:disabled { opacity: .45; cursor: not-allowed; }
 .valuation-page .brand-picker { margin: 0; padding: 0; }
 .valuation-page .brand-picker legend { display: none; }
 .valuation-page .brand-popular { grid-template-columns: repeat(4, minmax(0, 1fr)); }
@@ -186,4 +194,6 @@
 @media (max-width: 700px) {
   .valuation-page .vehicle-selection__colors { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .estimate-summary { grid-template-columns: 1fr; }
+  .manual-version > div { grid-template-columns: 1fr; }
+  .manual-version button { min-height: 42px; }
 }

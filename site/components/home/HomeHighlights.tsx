@@ -14,7 +14,7 @@ export function HomeHighlights() {
       <div className="home-highlights__heading">
         <span>Neden D CARS</span>
         <h2 id="highlights-title">Değerleme odaklı, şeffaf bir süreç.</h2>
-        <Link href="/arac-degerleme">Ücretsiz Teklif Al <ArrowRight size={17} /></Link>
+        <Link href="/arac-degerleme?new=1">Ücretsiz Teklif Al <ArrowRight size={17} /></Link>
       </div>
       <div className="home-highlights__grid">
         {highlights.map(([Icon, title, text], index) => (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import Link from "@/components/layout/NativeLink";
 import { ArrowUpRight } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -27,9 +27,11 @@ const categories = {
 } as const;
 
 type Category = keyof typeof categories;
+const subscribeToHydration = () => () => {};
 
 export function FaqSection() {
   const [active, setActive] = useState<Category>("Değerleme");
+  const hydrated = useSyncExternalStore(subscribeToHydration, () => true, () => false);
   return (
     <section className="faq" aria-labelledby="faq-title">
       <div className="faq__intro">
@@ -44,14 +46,16 @@ export function FaqSection() {
             <button type="button" key={category} aria-pressed={active === category} onClick={() => setActive(category)}>{category}</button>
           ))}
         </div>
-        <Accordion key={active} type="single" collapsible defaultValue={`${active}-0`} className="faq__accordion">
-          {categories[active].map(([question, answer], index) => (
-            <AccordionItem value={`${active}-${index}`} key={question} className="faq__item">
-              <AccordionTrigger className="faq__question"><span><small>0{index + 1}</small>{question}</span></AccordionTrigger>
-              <AccordionContent className="faq__answer">{answer}</AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
+        {hydrated ? (
+          <Accordion key={active} type="single" collapsible defaultValue={`${active}-0`} className="faq__accordion">
+            {categories[active].map(([question, answer], index) => (
+              <AccordionItem value={`${active}-${index}`} key={question} className="faq__item">
+                <AccordionTrigger className="faq__question"><span><small>0{index + 1}</small>{question}</span></AccordionTrigger>
+                <AccordionContent className="faq__answer">{answer}</AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        ) : <div className="faq__accordion" aria-hidden="true" />}
       </div>
     </section>
   );
