@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowLeft, ArrowRight, Check, CheckCircle2, Gauge, Search, Sparkles } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { BrandSelect } from "./BrandSelect";
 import { ModelSelect } from "./ModelSelect";
 import { PackageSelect } from "./PackageSelect";
@@ -38,11 +38,49 @@ export function QuickValuationForm({ onVehicleChange }: { onVehicleChange?: (veh
   const changeBrand = (value: string) => { setBrand(value); setModel(""); resetDetails(); notify({ ...vehicle, brand: value, model: "", engine: "", fuelType: "", transmission: "", trim: "" }); };
   const changeModel = (value: string) => { setModel(value); resetDetails(); notify({ ...vehicle, model: value, engine: "", fuelType: "", transmission: "", trim: "" }); };
   const changeTrim = (value: string) => { setTrim(value); notify({ ...vehicle, trim: value }); };
-  const engineOptions = useMemo(() => optionsFor({ year: Number(year), brand, model }, "engine"), [year, brand, model]);
-  const fuelOptions = useMemo(() => [...new Set([...optionsFor({ year: Number(year), brand, model, engine }, "fuelType"), ...fuelFallbacks])], [year, brand, model, engine]);
-  const transmissionOptions = useMemo(() => [...new Set([...optionsFor({ year: Number(year), brand, model, engine, fuelType }, "transmission"), ...transmissionFallbacks])], [year, brand, model, engine, fuelType]);
+
+  // ── Verified catalog options ───────────────────────────────────────────────
+  const verifiedEngines = useMemo(() => optionsFor({ year: Number(year), brand, model }, "engine"), [year, brand, model]);
+  const verifiedFuels = useMemo(() => optionsFor({ year: Number(year), brand, model, engine }, "fuelType"), [year, brand, model, engine]);
+  const verifiedTrans = useMemo(() => optionsFor({ year: Number(year), brand, model, engine, fuelType }, "transmission"), [year, brand, model, engine, fuelType]);
+
+  // ── CSV catalog fallback (fetched when no verified options) ────────────────
+  const [csvEngines, setCsvEngines] = useState<string[]>([]);
+  const [csvFuels, setCsvFuels] = useState<string[]>([]);
+  const [csvTrans, setCsvTrans] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!brand || !model) { setCsvEngines([]); return; }
+    if (verifiedEngines.length > 0) { setCsvEngines([]); return; }
+    const p = new URLSearchParams({ brand, model, field: "engine" });
+    if (year) p.set("year", year);
+    if (fuelType) p.set("fuelType", fuelType);
+    if (transmission) p.set("transmission", transmission);
+    fetch(`/api/catalog-options?${p}`).then((r) => r.json()).then((data) => setCsvEngines(data as string[])).catch(() => setCsvEngines([]));
+  }, [brand, model, year, fuelType, transmission, verifiedEngines.length]);
+
+  useEffect(() => {
+    if (!brand || !model) { setCsvFuels([]); return; }
+    if (verifiedFuels.length > 0) { setCsvFuels([]); return; }
+    const p = new URLSearchParams({ brand, model, field: "fuelType" });
+    if (year) p.set("year", year);
+    fetch(`/api/catalog-options?${p}`).then((r) => r.json()).then((data) => setCsvFuels(data as string[])).catch(() => setCsvFuels([]));
+  }, [brand, model, year, verifiedFuels.length]);
+
+  useEffect(() => {
+    if (!brand || !model) { setCsvTrans([]); return; }
+    if (verifiedTrans.length > 0) { setCsvTrans([]); return; }
+    const p = new URLSearchParams({ brand, model, field: "transmission" });
+    if (year) p.set("year", year);
+    fetch(`/api/catalog-options?${p}`).then((r) => r.json()).then((data) => setCsvTrans(data as string[])).catch(() => setCsvTrans([]));
+  }, [brand, model, year, verifiedTrans.length]);
+
+  // ── Merged options: verified first, then CSV, then static fallback ─────────
+  const engineOptions = verifiedEngines.length ? verifiedEngines : csvEngines;
+  const fuelOptions = [...new Set([...verifiedFuels, ...csvFuels, ...fuelFallbacks])];
+  const transmissionOptions = [...new Set([...verifiedTrans, ...csvTrans, ...transmissionFallbacks])];
   const canContinue = step === 0 ? Boolean(year && brand && model) : step === 1 ? Boolean(engine && fuelType && transmission && trim) : Boolean(mileage && Number(mileage) >= 0);
-  const validation = step === 0 ? (!brand ? "Marka seçin" : !year ? "Model yılı seçin" : !model ? "Model seçin" : "") : step === 1 ? (!engine ? "Motor seçin veya bilmiyorum deyin" : !fuelType ? "Yakıt tipi seçin" : !transmission ? "Vites tipi seçin" : !trim ? "Donanım paketi seçin veya bilmiyorum deyin" : "") : !mileage ? "Kilometre girin" : "";
+  const validation = step === 0 ? (!brand ? "Marka seçin" : !year ? "Model yılı seçin" : !model ? "Model seçin" : "") : step === 1 ? (!engine ? "Motor seçin" : !fuelType ? "Yakıt tipi seçin" : !transmission ? "Vites tipi seçin" : !trim ? "Donanım paketi seçin" : "") : !mileage ? "Kilometre girin" : "";
   const goNext = () => { if (!canContinue) return; if (step < 2) setStep((current) => current + 1); else setWizardOpen(true); };
   const motionProps = reduceMotion ? { initial: false as const } : { initial: { opacity: 0, y: 14 }, animate: { opacity: 1, y: 0 }, exit: { opacity: 0, y: -8 }, transition: { duration: .24, ease: [0.22, 1, 0.36, 1] as const } };
 
@@ -52,7 +90,7 @@ export function QuickValuationForm({ onVehicleChange }: { onVehicleChange?: (veh
       <div className="valuation-card valuation-card--wizard"><header className="valuation-progress"><div className="valuation-progress__mobile"><span>{step + 1} / 5</span><strong>{steps[step]}</strong></div><div className="valuation-progress__bar" aria-hidden="true"><motion.span animate={{ width: `${((step + 1) / 5) * 100}%` }} transition={reduceMotion ? { duration: 0 } : { duration: .3 }} /></div><ol>{steps.map((item, index) => <li key={item} className={index === step ? "is-active" : index < step ? "is-complete" : ""} aria-current={index === step ? "step" : undefined}><i>{index < step ? <Check size={13} /> : index + 1}</i><span>{item}</span></li>)}</ol></header>
         <div className="valuation-workspace"><div className="valuation-stage"><AnimatePresence mode="wait" initial={false}><motion.div className="valuation-step" key={step} {...motionProps}>
           {step === 0 && <><StepHeading eyebrow="ADIM 01" title="Aracını seç" text="Marka, model yılı ve modeli belirleyerek başlayalım." /><BrandSelect value={brand} onChange={changeBrand} /><YearPicker value={year} onChange={changeYear} /><ModelSelect brand={brand} year={year} value={model} onChange={changeModel} /></>}
-          {step === 1 && <><StepHeading eyebrow="ADIM 02" title="Araç detayları" text="Emin olmadığın alanlarda Bilmiyorum seçeneğiyle devam edebilirsin." /><SearchChoice label="Motor" value={engine} disabled={!model} options={[...new Set([...engineOptions, "Bilmiyorum"])]} emptyText="Bu kombinasyon için doğrulanmış motor seçeneği bulunamadı." onChange={(value) => { setEngine(value); setFuelType(""); setTransmission(""); setTrim(""); }} /><ChipChoice label="Yakıt tipi" value={fuelType} options={fuelOptions} onChange={(value) => { setFuelType(value); setTransmission(""); setTrim(""); }} /><ChipChoice label="Vites" value={transmission} options={transmissionOptions} onChange={(value) => { setTransmission(value); setTrim(""); }} /><PackageSelect year={Number(year)} brand={brand} model={model} engine={engine} fuelType={fuelType} transmission={transmission} value={trim} onChange={changeTrim} /></>}
+          {step === 1 && <><StepHeading eyebrow="ADIM 02" title="Araç detayları" text="Emin olmadığın alanlarda Bilmiyorum seçeneğiyle devam edebilirsin." /><SearchChoice label="Motor" value={engine} disabled={!model} options={engineOptions} emptyText="Motor seçenekleri yükleniyor..." onChange={(value) => { setEngine(value); setFuelType(""); setTransmission(""); setTrim(""); }} /><ChipChoice label="Yakıt tipi" value={fuelType} options={fuelOptions} onChange={(value) => { setFuelType(value); setTransmission(""); setTrim(""); }} /><ChipChoice label="Vites" value={transmission} options={transmissionOptions} onChange={(value) => { setTransmission(value); setTrim(""); }} /><PackageSelect year={Number(year)} brand={brand} model={model} engine={engine} fuelType={fuelType} transmission={transmission} value={trim} onChange={changeTrim} /></>}
           {step === 2 && <><StepHeading eyebrow="ADIM 03" title="Kullanım bilgileri" text="Güncel kilometre bilgisi, daha sağlıklı bir ilk değerlendirme sağlar." /><label className="valuation-field valuation-mileage"><span>Kilometre *</span><div className="number-input"><Gauge size={19} aria-hidden="true" /><input aria-describedby="mileage-help" inputMode="numeric" value={formatNumber(mileage)} onChange={(event) => changeMileage(event.target.value)} placeholder="85.000" /><span>km</span></div><small id="mileage-help">Yalnızca rakam girin; binlik ayırıcı otomatik eklenir.</small></label><div className="mileage-shortcuts" aria-label="Hızlı kilometre seçimi">{mileageShortcuts.map((value) => <button type="button" key={value} aria-pressed={mileage === value} onClick={() => changeMileage(value)}>{formatNumber(value)}{value === "150000" ? "+" : ""}</button>)}</div></>}
         </motion.div></AnimatePresence><div className="valuation-actions"><button className="valuation-back" type="button" onClick={() => setStep((current) => Math.max(0, current - 1))} disabled={step === 0}><ArrowLeft size={17} /> Geri</button><div>{!canContinue && validation && <small className="valuation-inline-hint">{validation}</small>}<button className="button button--primary valuation-submit" type="button" onClick={goNext} disabled={!canContinue}><span>{step === 2 && <Sparkles size={16} />}{step === 2 ? "Araç durumuna geç" : "Devam et"}</span><ArrowRight size={17} /></button></div></div></div><VehicleSummary vehicle={vehicle} /></div>
       </div>

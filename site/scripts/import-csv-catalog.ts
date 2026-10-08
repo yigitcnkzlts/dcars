@@ -76,6 +76,27 @@ function normaliseMake(raw: string): string {
   return map[raw] ?? raw.trim();
 }
 
+/** Strip make-name prefix that some CSV entries embed in the model field.
+ *  e.g. "MERCEDES BENZ C-Class" → "C-Class"
+ *       "Volkswagen Golf GTI"   → "Golf GTI"   (if make is Volkswagen)
+ */
+function normaliseModel(rawModel: string, make: string): string {
+  const stripped = rawModel.trim();
+  // Build a prefix pattern from the make name (case-insensitive, ignore hyphens/spaces variants)
+  const makeVariants = [
+    make,
+    make.replace(/-/g, " "),
+    make.toUpperCase(),
+    make.replace(/-/g, " ").toUpperCase(),
+  ];
+  for (const variant of makeVariants) {
+    if (stripped.toUpperCase().startsWith(variant.toUpperCase() + " ")) {
+      return stripped.slice(variant.length).trim();
+    }
+  }
+  return stripped;
+}
+
 /** Map CSV fuel_type strings → Turkish UI labels */
 function normaliseFuelType(raw: string): string {
   const r = raw.trim().toLowerCase();
@@ -234,7 +255,7 @@ const modelDedupe = new Set<string>();
 
 for (const row of modelsRaw) {
   const make = normaliseMake(row["make"]);
-  const model = row["model"]?.trim();
+  const model = normaliseModel(row["model"] ?? "", make);
   if (!make || !model) continue;
 
   const key = `${make}|${model}`;
@@ -256,7 +277,7 @@ let skippedEngines = 0;
 
 for (const row of enginesRaw) {
   const make = normaliseMake(row["make"]);
-  const model = row["model"]?.trim();
+  const model = normaliseModel(row["model"] ?? "", make);
   const generation = row["generation"]?.trim() ?? "";
   const engineLabel = row["engine_label"]?.trim() ?? "";
   const rawFuel = row["fuel_type"]?.trim() ?? "";

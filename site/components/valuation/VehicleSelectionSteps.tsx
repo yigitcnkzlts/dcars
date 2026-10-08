@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Check, ChevronRight, Search, CarFront } from "lucide-react";
 import { BrandSelect } from "./BrandSelect";
 import { ModelSelect } from "./ModelSelect";
@@ -38,12 +38,66 @@ export function VehicleSelectionSteps({ phase, selection, color, onColor, onSele
   const [query, setQuery] = useState("");
   const [manualVersionOpen, setManualVersionOpen] = useState(false);
   const [manualVersion, setManualVersion] = useState("");
+
+  // ── CSV catalog options (fetched from /api/catalog-options when no verified variants) ──
+  const [csvTransmissions, setCsvTransmissions] = useState<string[]>([]);
+  const [csvFuels, setCsvFuels] = useState<string[]>([]);
+  const [csvEngines, setCsvEngines] = useState<string[]>([]);
+
   const variants = variantsFor(selection.year ?? 0, selection.brand ?? "", selection.model ?? "");
-  const transmissions = variants.length ? [...new Set(variants.map((item) => item.transmission))] : ["Otomatik", "Manuel", "Yarı otomatik"];
+  const hasVerified = variants.length > 0;
+
+  // Fetch CSV transmissions when brand/model/year change and no verified variants
+  useEffect(() => {
+    if (hasVerified || !selection.brand || !selection.model) {
+      setCsvTransmissions([]);
+      return;
+    }
+    const params = new URLSearchParams({ brand: selection.brand, model: selection.model, field: "transmission" });
+    if (selection.year) params.set("year", String(selection.year));
+    fetch(`/api/catalog-options?${params}`).then((r) => r.json()).then((data) => setCsvTransmissions(data as string[])).catch(() => setCsvTransmissions([]));
+  }, [hasVerified, selection.brand, selection.model, selection.year]);
+
+  // Fetch CSV fuel types when transmission changes
+  useEffect(() => {
+    if (hasVerified || !selection.brand || !selection.model) {
+      setCsvFuels([]);
+      return;
+    }
+    const params = new URLSearchParams({ brand: selection.brand, model: selection.model, field: "fuelType" });
+    if (selection.year) params.set("year", String(selection.year));
+    fetch(`/api/catalog-options?${params}`).then((r) => r.json()).then((data) => setCsvFuels(data as string[])).catch(() => setCsvFuels([]));
+  }, [hasVerified, selection.brand, selection.model, selection.year]);
+
+  // Fetch CSV engines when fuelType or transmission changes
+  useEffect(() => {
+    if (hasVerified || !selection.brand || !selection.model) {
+      setCsvEngines([]);
+      return;
+    }
+    const params = new URLSearchParams({ brand: selection.brand, model: selection.model, field: "engine" });
+    if (selection.year) params.set("year", String(selection.year));
+    if (selection.fuelType) params.set("fuelType", selection.fuelType);
+    if (selection.transmission) params.set("transmission", selection.transmission);
+    fetch(`/api/catalog-options?${params}`).then((r) => r.json()).then((data) => setCsvEngines(data as string[])).catch(() => setCsvEngines([]));
+  }, [hasVerified, selection.brand, selection.model, selection.year, selection.fuelType, selection.transmission]);
+
+  // ── Cascading options ──────────────────────────────────────────────────────
+  const transmissions = hasVerified
+    ? [...new Set(variants.map((item) => item.transmission))]
+    : csvTransmissions.length ? csvTransmissions : ["Otomatik", "Manuel", "Yarı otomatik"];
+
   const byTransmission = variants.filter((item) => item.transmission === selection.transmission);
-  const fuels = variants.length ? [...new Set(byTransmission.map((item) => item.fuelType))] : ["Benzin", "Dizel", "Hibrit", "Elektrik", "LPG"];
+
+  const fuels = hasVerified
+    ? [...new Set(byTransmission.map((item) => item.fuelType))]
+    : csvFuels.length ? csvFuels : ["Benzin", "Dizel", "Hibrit", "Elektrik", "LPG"];
+
   const byFuel = byTransmission.filter((item) => item.fuelType === selection.fuelType);
-  const engines = [...new Set(byFuel.map((item) => item.engine))];
+
+  const engines = hasVerified
+    ? [...new Set(byFuel.map((item) => item.engine))]
+    : csvEngines;
   const matches = (text: string) => text.toLocaleLowerCase("tr-TR").includes(query.trim().toLocaleLowerCase("tr-TR"));
   const versions = byFuel.filter((item) => (!selection.engine || item.engine === selection.engine) && matches(versionLabel(item)));
   const packages = getPackageSuggestions(selection.brand ?? "", selection.model ?? "");
@@ -75,16 +129,13 @@ export function VehicleSelectionSteps({ phase, selection, color, onColor, onSele
         {phase === 2 && <ModelSelect grid brand={selection.brand ?? ""} value={selection.model ?? ""} onChange={(value) => onSelect("model", value)} />}
         {(phase === 3 || phase === 4) && (
           <>
-            {!variants.length && <p className="selection-notice">Bu model yılı için seçenekler katalogdan doğrulanamadı. Aracınızda bulunan bilgiyi seçin; başvuruda ayrıca kontrol edilecektir.</p>}
             <div className="vehicle-selection__cards">{(phase === 3 ? transmissions : fuels).map((value) => <Choice key={value} label={value} selected={(phase === 3 ? selection.transmission : selection.fuelType) === value} onClick={() => onSelect(phase === 3 ? "transmission" : "fuelType", value)} />)}</div>
           </>
         )}
         {phase === 5 && (
           <>
-            {!variants.length && <p className="selection-notice">Bu araç için doğrulanmış motor eşleşmesi bulunamadı. Motor bilgisini versiyon ekranında kontrollü manuel girişle belirtebilirsiniz.</p>}
             <div className="vehicle-selection__cards">{engines.filter(matches).map((value) => <Choice key={value} label={value} selected={selection.engine === value} onClick={() => onSelect("engine", value)} />)}</div>
-            {variants.length > 0 && !engines.length && <p className="vehicle-selection__empty">Seçilen yakıt ve vites için motor bulunamadı. Önceki seçimlerinizi kontrol edin.</p>}
-            {!variants.length && <Choice label="Katalogda bulunamadı" detail="Manuel bilgi gireceğim" selected={selection.engine === "Belirtilmedi"} onClick={() => onSelect("engine", "Belirtilmedi")} />}
+            {engines.length > 0 && !engines.filter(matches).length && <p className="vehicle-selection__empty">Arama ile eşleşen motor bulunamadı. Aramayı temizleyin.</p>}
           </>
         )}
         {phase === 6 && (

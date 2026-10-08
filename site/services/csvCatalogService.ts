@@ -17,6 +17,40 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 
+// ── UI → CSV model name mapping ───────────────────────────────────────────────
+// vehicleDataService.ts uses Turkish/localised model names; the CSV uses
+// English/international names.  This map translates UI names → CSV names so
+// that getCsvEnginesFor() can find entries regardless of which name the user sees.
+const MODEL_NAME_MAP: Record<string, string[]> = {
+  // Mercedes-Benz
+  "A-Serisi": ["A-Class", "A-Klasse"],
+  "B-Serisi": ["B-Class", "B-Klasse"],
+  "C-Serisi": ["C-Class", "C-Klasse"],
+  "E-Serisi": ["E-Class", "E-Klasse"],
+  "S-Serisi": ["S-Class", "S-Klasse"],
+  "G Serisi": ["G-Class", "G-Klasse"],
+  "GLS": ["GLS-Class", "GLS Klasse", "GLS"],
+  // BMW
+  "1 Serisi": ["1 Series", "1er"],
+  "2 Serisi": ["2 Series", "2er"],
+  "3 Serisi": ["3 Series", "3er"],
+  "4 Serisi": ["4 Series", "4er"],
+  "5 Serisi": ["5 Series", "5er"],
+  "6 Serisi": ["6 Series", "6er"],
+  "7 Serisi": ["7 Series", "7er"],
+  "8 Serisi": ["8 Series", "8er"],
+  // Renault
+  "Taliant": ["Taliant", "Talisman"],
+  // Volkswagen (VW model names are mostly same)
+  // Generic
+  "C-HR": ["C-HR"],
+};
+
+/** Expand a UI model name to all possible CSV model names (including itself). */
+function expandModelName(model: string): string[] {
+  return [model, ...(MODEL_NAME_MAP[model] ?? [])];
+}
+
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 export interface CsvEngineEntry {
@@ -58,24 +92,31 @@ function loadCatalog(): CatalogShape | null {
   // Only attempt to read in a server / Node.js environment.
   if (typeof window !== "undefined") return null;
 
-  const catalogPath = path.join(
-    // __dirname is not available in ESM; resolve relative to this file's location
-    // via import.meta.url when available, otherwise fall back to process.cwd().
-    typeof __dirname !== "undefined"
-      ? __dirname
-      : path.dirname(new URL(import.meta.url).pathname),
-    "..",
-    "data",
-    "vehicle-catalog",
-    "csv-catalog.json",
-  );
+  // Resolve path relative to this service file's location.
+  // Works in both CommonJS (__dirname) and ESM (import.meta.url) contexts.
+  let baseDir: string;
+  try {
+    // ESM context (Next.js App Router)
+    baseDir = path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"));
+  } catch {
+    // CJS fallback
+    baseDir = typeof __dirname !== "undefined" ? __dirname : process.cwd();
+  }
+
+  const catalogPath = path.resolve(baseDir, "..", "data", "vehicle-catalog", "csv-catalog.json");
 
   try {
     const raw = fs.readFileSync(catalogPath, "utf-8");
     return JSON.parse(raw) as CatalogShape;
   } catch {
-    // File does not exist yet — run `npx tsx scripts/import-csv-catalog.ts` to generate.
-    return null;
+    // Fallback: try from process.cwd() (works in tsx script context)
+    try {
+      const fallbackPath = path.resolve(process.cwd(), "data", "vehicle-catalog", "csv-catalog.json");
+      const raw = fs.readFileSync(fallbackPath, "utf-8");
+      return JSON.parse(raw) as CatalogShape;
+    } catch {
+      return null;
+    }
   }
 }
 
@@ -128,8 +169,9 @@ export function getCsvEnginesFor(
   year?: number,
 ): CsvEngineEntry[] {
   if (!catalog) return [];
+  const modelVariants = expandModelName(model);
   return catalog.engines.filter((e) => {
-    if (e.make !== make || e.model !== model) return false;
+    if (e.make !== make || !modelVariants.includes(e.model)) return false;
     if (!year) return true;
     const from = e.genYearStart ?? 0;
     const to = e.genYearEnd ?? new Date().getFullYear() + 2;
