@@ -2,8 +2,7 @@
  * Araç seçim akışı testi — yıl → marka → model → vites → yakıt → motor → donanım
  * Run: npx tsx scripts/test-selection-flow.ts
  */
-import assert from "node:assert/strict";
-import { variantsFor, optionsFor } from "../services/vehicleCatalogService";
+import { variantsFor, optionsFor, verifiedOptionsFor } from "../services/vehicleCatalogService";
 import { getPackageSuggestions } from "../services/vehiclePackageService";
 
 let pass = 0;
@@ -17,6 +16,50 @@ function check(label: string, condition: boolean, detail = "") {
     console.error(`  ❌ FAIL: ${label}${detail ? ` — ${detail}` : ""}`);
     fail++;
   }
+}
+
+function frontendTrims(year: number, brand: string, model: string, transmission: string, fuelType: string, engine: string) {
+  return [...new Set(variantsFor(year, brand, model)
+    .filter((variant) => variant.transmission === transmission && variant.fuelType === fuelType && variant.engine === engine)
+    .map((variant) => variant.trim))];
+}
+
+// ── Volkswagen Golf — gerçek frontend kaskadı ───────────────────────────────
+console.log("\n── Volkswagen Golf 2017 / 2026");
+{
+  const golf2017 = frontendTrims(2017, "Volkswagen", "Golf", "DSG", "Benzin", "1.4 TSI BMT 125 PS");
+  check("2017 1.4 TSI DSG Comfortline görünür", golf2017.includes("Comfortline"), `trims: ${golf2017.join(", ")}`);
+  check("2017 1.4 TSI DSG Highline görünür", golf2017.includes("Highline"));
+  const golf2026 = frontendTrims(2026, "Volkswagen", "Golf", "DSG", "Hibrit", "1.5 eTSI 150 PS");
+  check("2026 1.5 eTSI DSG Style görünür", golf2026.includes("Style"), `trims: ${golf2026.join(", ")}`);
+  check("2026 1.5 eTSI DSG R-Line görünür", golf2026.includes("R-Line"));
+  check("2026 eTSI altında Impression görünmez", !golf2026.includes("Impression"));
+}
+
+// ── Renault Clio — gerçek frontend ve API kaskadı ────────────────────────────
+console.log("\n── Renault Clio 2020 / 2021");
+{
+  const clio2020 = frontendTrims(2020, "Renault", "Clio", "EDC", "Benzin", "1.3 TCe 130 bg");
+  check("2020 1.3 TCe EDC Touch görünür", clio2020.includes("Touch"), `trims: ${clio2020.join(", ")}`);
+  check("2020 1.3 TCe EDC Icon görünür", clio2020.includes("Icon"));
+  check("2020 1.3 TCe EDC Joy görünmez", !clio2020.includes("Joy"));
+  const apiTrims = verifiedOptionsFor({ year: 2020, brand: "Renault", model: "Clio", transmission: "EDC", fuelType: "Benzin", engine: "1.3 TCe 130 bg" }, "trim");
+  check("catalog-options trim kaynağı Touch/Icon döndürüyor", apiTrims.length === 2 && apiTrims.includes("Touch") && apiTrims.includes("Icon"), `trims: ${apiTrims.join(", ")}`);
+  const clio2021 = frontendTrims(2021, "Renault", "Clio", "X-Tronic", "Benzin", "1.0 TCe 90 bg");
+  check("2021 X-Tronic Icon görünür", clio2021.includes("Icon"), `trims: ${clio2021.join(", ")}`);
+}
+
+// ── Fiat Egea — gerçek frontend kaskadı ──────────────────────────────────────
+console.log("\n── Fiat Egea 2020 / 2021");
+{
+  const egea2020 = frontendTrims(2020, "Fiat", "Egea", "Manuel", "Dizel", "1.3 Multijet 95 HP");
+  check("2020 1.3 Multijet Easy görünür", egea2020.includes("Easy"), `trims: ${egea2020.join(", ")}`);
+  check("2020 1.3 Multijet Urban Plus görünür", egea2020.includes("Urban Plus"));
+  check("2020 1.3 Multijet Mirror görünür", egea2020.includes("Mirror"));
+  const egea2021 = frontendTrims(2021, "Fiat", "Egea", "Manuel", "Benzin", "1.0 FireFly 100 HP");
+  check("2021 1.0 FireFly Urban görünür", egea2021.includes("Urban"), `trims: ${egea2021.join(", ")}`);
+  check("2021 1.0 FireFly Lounge görünür", egea2021.includes("Lounge"));
+  check("2021 1.0 FireFly Easy görünmez", !egea2021.includes("Easy"));
 }
 
 // ── Hyundai i20 2026 ─────────────────────────────────────────────────────────

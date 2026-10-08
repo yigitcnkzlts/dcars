@@ -72,3 +72,24 @@ volkswagenVariants.push(...offers2017.flatMap(([model, generation, engine, power
   engine, powerHp, fuelType, transmission, version: `${engine} · ${transmission}`, trim,
   factoryEquipment: [], sourceUrl: source2017, sourceUrls: [source2017], verified: true, verifiedLevel: "official" as const, lastUpdated: "2026-09-21",
 }))));
+
+// Volkswagen Türkiye'nin Eylül 2026 Golf kampanyası, kampanyaya dahil olan
+// motor + şanzıman + donanım kombinasyonlarını tek tek listeliyor.
+const golf2026Source = "https://binekarac.vw.com.tr/tr/kampanyalar-ve-finansal-cozumler/satis-kampanyalari/golf-eylul-firsati.html";
+const golf2026 = [
+  ["1.5 TSI 116 PS", 116, "Benzin", "Manuel", "Impression"],
+  ["1.5 eTSI 116 PS", 116, "Hibrit", "DSG", "Life"],
+  ["1.5 eTSI 116 PS", 116, "Hibrit", "DSG", "Style"],
+  ["1.5 eTSI 150 PS", 150, "Hibrit", "DSG", "Style"],
+  ["1.5 eTSI 150 PS", 150, "Hibrit", "DSG", "R-Line"],
+] as const;
+
+volkswagenVariants.push(...golf2026.map(([engine, powerHp, fuelType, transmission, trim]) => ({
+  year: 2026, yearFrom: 2026, yearTo: 2026,
+  brand: "Volkswagen", model: "Golf", generation: "Golf VIII.5", bodyType: "Hatchback",
+  engine, powerHp, displacementCc: 1498, fuelType, transmission,
+  version: `${engine} · ${transmission}`, trim, factoryEquipment: [],
+  market: "TR" as const, sourceUrl: golf2026Source, sourceUrls: [golf2026Source],
+  verified: true, verifiedLevel: "official" as const, verificationStatus: "verified" as const,
+  verifiedAt: "2026-10-09", lastUpdated: "2026-10-09",
+})));

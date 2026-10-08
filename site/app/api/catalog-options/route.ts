@@ -16,6 +16,7 @@ import {
   getCsvFuelTypes,
   getCsvTransmissions,
 } from "@/services/csvCatalogService";
+import { verifiedOptionsFor } from "@/services/vehicleCatalogService";
 
 export const runtime = "nodejs"; // needs fs — cannot run on edge
 
@@ -27,6 +28,7 @@ export function GET(req: NextRequest) {
   const field = searchParams.get("field") ?? "";
   const fuelType = searchParams.get("fuelType") ?? undefined;
   const transmission = searchParams.get("transmission") ?? undefined;
+  const engine = searchParams.get("engine") ?? undefined;
 
   if (!brand || !model || !field) {
     return NextResponse.json([], { status: 400 });
@@ -35,6 +37,18 @@ export function GET(req: NextRequest) {
   const year = yearRaw ? Number(yearRaw) : undefined;
 
   let options: string[] = [];
+
+  if (year && ["transmission", "fuelType", "engine", "trim"].includes(field)) {
+    options = verifiedOptionsFor(
+      { year, brand, model, fuelType, transmission, engine },
+      field as "transmission" | "fuelType" | "engine" | "trim",
+    );
+    if (options.length || field === "trim") {
+      return NextResponse.json(options, {
+        headers: { "Cache-Control": "public, max-age=3600, stale-while-revalidate=86400" },
+      });
+    }
+  }
 
   if (field === "transmission") {
     options = getCsvTransmissions(brand, model, year);

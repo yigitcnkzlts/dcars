@@ -14,6 +14,7 @@ import type { VehicleVariant } from "./variants";
 
 const source2020 = "https://www.oyak-renault.com/wp-content/uploads/2020/06/OYAK-Grup-Sirketleri-Otomobil-Kampanyasi-Fiyat-Listesi-2020.pdf";
 const source2021 = "https://www.oyak-renault.com/wp-content/uploads/2022/01/OR-Mais-Satis-Kampanyasi-100122.pdf";
+const clio2021DealerSource = "https://www.akbak.com.tr/public/upload/fiyatListe/1_1_fiyat-listesi-8.pdf";
 const austral2023Source = "https://www.renault.com.tr/renault-haberler/renault-haberler-urun-lansman/renault-haberler-urun-lansman-yeni-austral-e-tech-full-hybrid.html";
 const clio2026Source = "https://www.renault.com.tr/hybrid-araclar/yeni-clio.html";
 
@@ -57,6 +58,7 @@ const combinations: Combination[] = [
 
   // ── Clio V — 2021 ───────────────────────────────────────────────────────────
   { model: "Clio", generation: "Clio V", bodyType: "Hatchback", year: 2021, engine: "1.0 TCe 90 bg", powerHp: 90, fuelType: "Benzin", transmission: "X-Tronic", trims: ["Joy", "Touch"], sourceUrl: source2021 },
+  { model: "Clio", generation: "Clio V", bodyType: "Hatchback", year: 2021, engine: "1.0 TCe 90 bg", powerHp: 90, fuelType: "Benzin", transmission: "X-Tronic", trims: ["Icon"], sourceUrl: clio2021DealerSource },
 
   // ── Megane IV Sedan — 2021 ──────────────────────────────────────────────────
   { model: "Megane", generation: "Megane IV Sedan", bodyType: "Sedan", year: 2021, engine: "1.3 TCe 140 bg", powerHp: 140, fuelType: "Benzin", transmission: "EDC", trims: ["Joy"], sourceUrl: source2021 },

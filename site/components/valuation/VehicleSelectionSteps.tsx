@@ -101,6 +101,7 @@ export function VehicleSelectionSteps({ phase, selection, color, onColor, onSele
   const matches = (text: string) => text.toLocaleLowerCase("tr-TR").includes(query.trim().toLocaleLowerCase("tr-TR"));
   const versions = byFuel.filter((item) => (!selection.engine || item.engine === selection.engine) && matches(versionLabel(item)));
   const packages = getPackageSuggestions(selection.brand ?? "", selection.model ?? "");
+  const verifiedCatalogPriorityBrand = ["Volkswagen", "Renault", "Fiat"].includes(selection.brand ?? "");
   // Hibrit filtresi: pakette "hybrid" geçiyorsa yalnızca hibrit yakıt seçiminde göster.
   // Türkçe "Hibrit" / "Mild Hibrit" / "Plug-in Hibrit" kontrolü yapıyoruz.
   const fuelIsHybrid = /hibrit/i.test(selection.fuelType ?? "");
@@ -116,7 +117,7 @@ export function VehicleSelectionSteps({ phase, selection, color, onColor, onSele
   // Verified versiyonlar: byFuel'de engine eşleşmesi varsa
   const showVerifiedVersions = versions.length > 0;
   // Paket önerileri: verified yoksa veya engine seçildi ama verified match bulunamadıysa
-  const showPackageSuggestions = !showVerifiedVersions && filteredPackages.length > 0;
+  const showPackageSuggestions = !verifiedCatalogPriorityBrand && !showVerifiedVersions && filteredPackages.length > 0;
   // Manuel giriş: hem verified hem paket yoksa, ya da kullanıcı bulamadı diyorsa
   const showManualAlways = !showVerifiedVersions;
   const matched = selectedVariant(selection);

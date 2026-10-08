@@ -28,6 +28,20 @@ export function trimOptionsFor(selection: Partial<VehicleSelection>): string[] {
     .map((item) => item.trim))];
 }
 
+/** Returns verified options after applying every selected upstream field. */
+export function verifiedOptionsFor(
+  selection: Partial<VehicleSelection>,
+  field: "transmission" | "fuelType" | "engine" | "trim",
+): string[] {
+  const rows = variantsFor(selection.year ?? 0, selection.brand ?? "", selection.model ?? "")
+    .filter((item) =>
+      (!selection.transmission || field === "transmission" || item.transmission === selection.transmission) &&
+      (!selection.fuelType || field === "fuelType" || item.fuelType === selection.fuelType) &&
+      (!selection.engine || field === "engine" || item.engine === selection.engine) &&
+      (!selection.trim || field === "trim" || item.trim === selection.trim));
+  return [...new Set(rows.map((item) => item[field]))];
+}
+
 const normalizeSearch = (value: string) => value.toLocaleLowerCase("tr-TR")
   .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
   .replace(/[^a-z0-9]+/g, " ").trim();
