@@ -8,7 +8,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 const categories = {
   "Değerleme": [
     ["Başlamak için ne gerekir?", "Model yılı, marka, model, vites, yakıt, versiyon ve renk ile başlarız. Sonraki adımda kilometre, tramer ve ekspertiz bilgilerini alıyoruz."],
-    ["Ekrandaki fiyat teklif midir?", "Hayır. Gösterilen tutar mevcut bilgilerle üretilen tahmini bir ön değerlemedir. Kesin ve bağlayıcı teklif değildir. Nihai teklif araç incelemesi ve piyasa araştırması sonrasında belirlenir."],
+    ["Başvuru sonunda hemen fiyat gösterilir mi?", "Hayır. Güvenilir bir fiyat hesaplama altyapısı olmadan otomatik veya rastgele tutar göstermiyoruz. Nihai teklif araç incelemesi ve piyasa araştırması sonrasında yetkili ekibimiz tarafından belirlenir."],
     ["Başvuru satış zorunluluğu doğurur mu?", "Hayır. Başvuru bir teklif talebidir. İletilen koşulları değerlendirip kabul edip etmemek size kalır."],
     ["Formu yarıda bırakırsam ne olur?", "Araç bilgilerinin taslağı tarayıcınızda kalır. Fotoğraflar ve iletişim bilgileri gönderilene kadar yüklenmez."],
   ],

@@ -1,5 +1,5 @@
-import { desc, eq } from "drizzle-orm";
-import { valuationRequests } from "@/db/schema";
+import { desc, eq, inArray } from "drizzle-orm";
+import { valuationPhotos, valuationRequests } from "@/db/schema";
 
 function authorized(request: Request) { const secret = process.env.VALUATION_ADMIN_TOKEN; return Boolean(secret && request.headers.get("authorization") === `Bearer ${secret}`); }
 
@@ -7,8 +7,11 @@ export async function GET(request: Request) {
   if (!authorized(request)) return Response.json({ error: "Yetkisiz işlem." }, { status: 401 });
   try {
     const { getDb } = await import("@/db");
-    const records = await getDb().select({ id: valuationRequests.id, year: valuationRequests.year, brand: valuationRequests.brand, model: valuationRequests.model, firstName: valuationRequests.firstName, lastName: valuationRequests.lastName, phone: valuationRequests.phone, status: valuationRequests.status, details: valuationRequests.details, createdAt: valuationRequests.createdAt }).from(valuationRequests).orderBy(desc(valuationRequests.id)).limit(50);
-    return Response.json({ records }, { headers: { "Cache-Control": "no-store" } });
+    const db = getDb();
+    const records = await db.select({ id: valuationRequests.id, year: valuationRequests.year, brand: valuationRequests.brand, model: valuationRequests.model, firstName: valuationRequests.firstName, lastName: valuationRequests.lastName, phone: valuationRequests.phone, email: valuationRequests.email, status: valuationRequests.status, details: valuationRequests.details, createdAt: valuationRequests.createdAt }).from(valuationRequests).orderBy(desc(valuationRequests.id)).limit(50);
+    const ids = records.map((record) => record.id);
+    const photos = ids.length ? await db.select({ id: valuationPhotos.id, requestId: valuationPhotos.requestId, area: valuationPhotos.area, fileName: valuationPhotos.fileName }).from(valuationPhotos).where(inArray(valuationPhotos.requestId, ids)) : [];
+    return Response.json({ records: records.map((record) => ({ ...record, photos: photos.filter((photo) => photo.requestId === record.id) })) }, { headers: { "Cache-Control": "no-store" } });
   } catch { return Response.json({ error: "Başvurular yüklenemedi." }, { status: 503 }); }
 }
 

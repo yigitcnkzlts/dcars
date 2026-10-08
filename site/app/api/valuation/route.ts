@@ -4,9 +4,9 @@ import { createValuationRequest } from "@/services/valuationService";
 import type { ValuationRequest } from "@/types/valuation";
 import { selectedVariant } from "@/services/vehicleCatalogService";
 
-const maxPhotos = 5;
+const maxPhotos = 15;
 const maxPhotoBytes = 4 * 1024 * 1024;
-const areas = new Set(["Ön", "Arka", "Sol yan", "Sağ yan", "İç mekân", "Hasarlı bölge", "Diğer"]);
+const areas = new Set(["Önden görünüm", "Arkadan görünüm", "Sağ yan", "Sol yan", "Ön iç konsol", "Koltuklar", "Kilometre göstergesi", "Motor bölümü", "Hasarlı bölge", "Ek fotoğraflar"]);
 
 function validImage(bytes: Uint8Array, type: string) {
   if (type === "image/jpeg") return bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
@@ -20,7 +20,7 @@ export async function POST(request: Request) {
   let bucket: R2Bucket | undefined;
   const storedKeys: string[] = [];
   try {
-    if (Number(request.headers.get("content-length") || 0) > 22 * 1024 * 1024) return Response.json({ error: "Fotoğrafların toplam boyutu çok büyük." }, { status: 413 });
+    if (Number(request.headers.get("content-length") || 0) > 62 * 1024 * 1024) return Response.json({ error: "Fotoğrafların toplam boyutu çok büyük." }, { status: 413 });
     if (!request.headers.get("content-type")?.includes("multipart/form-data")) return Response.json({ error: "Geçersiz başvuru biçimi." }, { status: 415 });
     const data = await request.formData();
     const raw = data.get("payload");
@@ -34,11 +34,13 @@ export async function POST(request: Request) {
         (payload.plate !== undefined && (typeof payload.plate !== "string" || payload.plate.length > 20)) ||
         (payload.callRequested !== undefined && typeof payload.callRequested !== "boolean") ||
         (payload.optionalEquipment !== undefined && (!Array.isArray(payload.optionalEquipment) || payload.optionalEquipment.length > 20 || !payload.optionalEquipment.every((item) => typeof item === "string" && item.length <= 80))) ||
+        ([payload.equipmentNotes, payload.damageNotes, payload.customerNotes].some((value) => value !== undefined && (typeof value !== "string" || value.length > 1200))) ||
+        ([payload.sunroof, payload.chassisWork, payload.mechanicalIssue].some((value) => value !== undefined && (typeof value !== "string" || value.length > 40))) ||
         (payload.inspection !== undefined && (typeof payload.inspection !== "object" || payload.inspection === null || Array.isArray(payload.inspection) || Object.keys(payload.inspection).length > 13 || !Object.values(payload.inspection).every((value) => ["Orijinal", "Lokal Boyalı", "Boyalı", "Değişen"].includes(value)))) ||
         (payload.preferredContactMethod !== undefined && !["Telefon", "WhatsApp", "E-posta"].includes(payload.preferredContactMethod))) return Response.json({ error: "Araç detaylarını kontrol edin." }, { status: 400 });
     if (payload.catalogMatched && !selectedVariant(payload)) return Response.json({ error: "Seçilen katalog versiyonu doğrulanamadı." }, { status: 400 });
     const photos = data.getAll("photos");
-    if (photos.length > maxPhotos) return Response.json({ error: "En fazla 5 fotoğraf ekleyebilirsiniz." }, { status: 400 });
+    if (photos.length > maxPhotos) return Response.json({ error: "En fazla 15 fotoğraf ekleyebilirsiniz." }, { status: 400 });
     const prepared: { file: File; bytes: ArrayBuffer; area: string }[] = [];
     for (let index = 0; index < photos.length; index++) {
       const file = photos[index];

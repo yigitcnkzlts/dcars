@@ -3157,6 +3157,10 @@ h1 em {
     letter-spacing: 0;
     text-transform: none;
 }
+.hero-brand-input { display: flex; align-items: center; gap: 8px; min-width: 0; height: 44px; padding: 0 12px; border: 1px solid #e3e6eb; border-radius: 10px; background: #fff; color: #7b8290; }
+.hero-brand-input:focus-within { border-color: #ac8852; box-shadow: 0 0 0 3px #ac885218; }
+.hero-brand-input input { width: 100%; min-width: 0; border: 0; outline: 0; background: transparent; color: inherit; font: inherit; }
+.hero-start .button.is-disabled { opacity: .5; cursor: not-allowed; }
 
 .journey {
     padding: clamp(48px, 7vw, 88px) clamp(24px, 7vw, 112px);

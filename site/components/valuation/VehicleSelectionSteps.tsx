@@ -25,9 +25,9 @@ const swatches: Record<string, string> = {
   Sarı: "#e2ba43", Yeşil: "#39765b", Bej: "#c4ad88", Kahverengi: "#66503e", Şampanya: "#c0aa83",
   Altın: "#c6a15b", Mor: "#72527b", Diğer: "#e9e9e9",
 };
-const labels = ["Model Yılı", "Marka", "Model", "Vites Tipi", "Yakıt Tipi", "Model Uzantısı / Versiyon", "Renk"];
-const titles = ["Aracınızın model yılı nedir?", "Hangi marka aracı satıyorsunuz?", "Aracınızın modelini seçin", "Vites tipini seçin", "Yakıt tipini seçin", "Aracınızın versiyonunu seçin", "Aracınızın rengi"];
-const searchLabels = ["Yıla göre ara", "Markaya göre ara", "Modele göre ara", "", "", "Versiyona göre ara", ""];
+const labels = ["Model Yılı", "Marka", "Model", "Vites Tipi", "Yakıt Tipi", "Motor", "Versiyon / Donanım", "Renk"];
+const titles = ["Aracınızın model yılı nedir?", "Hangi marka aracı satıyorsunuz?", "Aracınızın modelini seçin", "Vites tipini seçin", "Yakıt tipini seçin", "Motor seçeneğini seçin", "Aracınızın versiyonunu seçin", "Aracınızın rengi"];
+const searchLabels = ["Yıla göre ara", "Markaya göre ara", "Modele göre ara", "", "", "Motor seçeneğinde ara", "Versiyona göre ara", ""];
 
 export function versionLabel(variant: VehicleVariant): string {
   const commercial = variant.version && variant.version !== `${variant.engine} · ${variant.transmission}` ? variant.version : "";
@@ -42,24 +42,29 @@ export function VehicleSelectionSteps({ phase, selection, color, onColor, onSele
   const transmissions = variants.length ? [...new Set(variants.map((item) => item.transmission))] : ["Otomatik", "Manuel", "Yarı otomatik"];
   const byTransmission = variants.filter((item) => item.transmission === selection.transmission);
   const fuels = variants.length ? [...new Set(byTransmission.map((item) => item.fuelType))] : ["Benzin", "Dizel", "Hibrit", "Elektrik", "LPG"];
+  const byFuel = byTransmission.filter((item) => item.fuelType === selection.fuelType);
+  const engines = [...new Set(byFuel.map((item) => item.engine))];
   const matches = (text: string) => text.toLocaleLowerCase("tr-TR").includes(query.trim().toLocaleLowerCase("tr-TR"));
-  const versions = byTransmission.filter((item) => item.fuelType === selection.fuelType && matches(versionLabel(item)));
+  const versions = byFuel.filter((item) => (!selection.engine || item.engine === selection.engine) && matches(versionLabel(item)));
   const packages = getPackageSuggestions(selection.brand ?? "", selection.model ?? "");
   const filteredPackages = packages.filter((item) => (!packages.some((name) => /hybrid/i.test(name)) || (selection.fuelType === "Hibrit") === /hybrid/i.test(item)) && matches(item));
   const showVerifiedVersions = versions.length > 0;
   const matched = selectedVariant(selection);
-  const answers = [selection.year, selection.brand, selection.model, selection.transmission, selection.fuelType, matched ? versionLabel(matched) : selection.trim, color];
+  const answers = [selection.year, selection.brand, selection.model, selection.transmission, selection.fuelType, selection.engine, matched ? versionLabel(matched) : selection.trim, color];
   const years = Array.from({ length: new Date().getFullYear() + 2 - 1985 }, (_, index) => new Date().getFullYear() + 1 - index).filter((year) => matches(String(year)));
 
   return (
     <div className="vehicle-selection vehicle-selection--layout">
       <div className="vehicle-selection__main">
+        <nav className="selection-trail" aria-label="Araç bilgisi alt adımları">
+          {labels.map((label, index) => <button type="button" key={label} disabled={index > phase || !answers[index]} aria-current={index === phase ? "step" : undefined} onClick={() => onChangePhase(index)}><span>{index + 1}</span>{label}</button>)}
+        </nav>
         <div className="selection-heading">
           <span className="vehicle-eyebrow">{labels[phase]}</span>
           <h3 tabIndex={-1} data-selection-heading>{titles[phase]}</h3>
           <p>Seçiminizle bir sonraki adıma geçebilirsiniz.</p>
         </div>
-        {(phase === 0 || phase === 5) && (
+        {(phase === 0 || phase === 5 || phase === 6) && (
           <label className="selection-search">
             <Search size={18} aria-hidden="true" />
             <input aria-label={searchLabels[phase]} type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder={searchLabels[phase]} />
@@ -75,6 +80,14 @@ export function VehicleSelectionSteps({ phase, selection, color, onColor, onSele
           </>
         )}
         {phase === 5 && (
+          <>
+            {!variants.length && <p className="selection-notice">Bu araç için doğrulanmış motor eşleşmesi bulunamadı. Motor bilgisini versiyon ekranında kontrollü manuel girişle belirtebilirsiniz.</p>}
+            <div className="vehicle-selection__cards">{engines.filter(matches).map((value) => <Choice key={value} label={value} selected={selection.engine === value} onClick={() => onSelect("engine", value)} />)}</div>
+            {variants.length > 0 && !engines.length && <p className="vehicle-selection__empty">Seçilen yakıt ve vites için motor bulunamadı. Önceki seçimlerinizi kontrol edin.</p>}
+            {!variants.length && <Choice label="Katalogda bulunamadı" detail="Manuel bilgi gireceğim" selected={selection.engine === "Belirtilmedi"} onClick={() => onSelect("engine", "Belirtilmedi")} />}
+          </>
+        )}
+        {phase === 6 && (
           <>
             {showVerifiedVersions
               ? <p className="selection-source"><Check size={14} /> Doğrulanmış katalog seçenekleri</p>
@@ -97,7 +110,7 @@ export function VehicleSelectionSteps({ phase, selection, color, onColor, onSele
             )}
           </>
         )}
-        {phase === 6 && (
+        {phase === 7 && (
           <div className="vehicle-selection__colors" role="group" aria-label="Araç rengi">
             {Object.entries(swatches).map(([name, swatch]) => (
               <button type="button" key={name} aria-pressed={color === name} className={color === name ? "vehicle-selection__color is-selected" : "vehicle-selection__color"} onClick={() => onColor(name)}>
@@ -110,18 +123,21 @@ export function VehicleSelectionSteps({ phase, selection, color, onColor, onSele
         )}
       </div>
       <aside className="vehicle-selection__summary" aria-label="Seçilen araç özeti">
-        <div className="selection-car"><CarFront size={66} strokeWidth={1} aria-hidden="true" /><span>D CARS</span></div>
-        <span className="vehicle-eyebrow">ARAÇ ÖZETİ</span>
-        <h4>{selection.brand ? `${selection.brand} ${selection.model ?? ""}` : "Seçtikçe özet dolacak."}</h4>
-        <dl>
-          {labels.map((label, index) => (
-            <div key={label}>
-              <dt>{label}</dt>
-              <dd>{answers[index] ? <button type="button" onClick={() => onChangePhase(index)} aria-label={`${label} değiştir: ${answers[index]}`}>{answers[index]}<ChevronRight size={13} /></button> : "—"}</dd>
-            </div>
-          ))}
-        </dl>
-        <p>Seçtiğiniz bir bilgiyi değiştirmek için üzerine dokunun.</p>
+        <details open>
+          <summary><CarFront size={20} aria-hidden="true" /> Araç özetini göster / gizle</summary>
+          <div className="selection-car"><CarFront size={66} strokeWidth={1} aria-hidden="true" /><span>D CARS</span></div>
+          <span className="vehicle-eyebrow">ARAÇ ÖZETİ</span>
+          <h4>{selection.brand ? `${selection.brand} ${selection.model ?? ""}` : "Seçtikçe özet dolacak."}</h4>
+          <dl>
+            {labels.map((label, index) => (
+              <div key={label}>
+                <dt>{label}</dt>
+                <dd>{answers[index] ? <button type="button" onClick={() => onChangePhase(index)} aria-label={`${label} değiştir: ${answers[index]}`}>{answers[index]}<ChevronRight size={13} /></button> : "—"}</dd>
+              </div>
+            ))}
+          </dl>
+          <p>Seçtiğiniz bir bilgiyi değiştirmek için üzerine dokunun.</p>
+        </details>
       </aside>
     </div>
   );

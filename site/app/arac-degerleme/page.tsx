@@ -11,7 +11,7 @@ export default function ValuationPage() {
           <div>
             <span>D CARS · ARACIMI DEĞERLE</span>
             <h1>Aracınızın değerini öğrenin.</h1>
-            <p>Bilgilerinizi paylaşın, tahmini ön değeri görün ve randevu adımına geçin. Satış zorunluluğu yoktur.</p>
+            <p>Bilgilerinizi paylaşın; uzmanlarımız aracınızı ve güncel piyasa koşullarını inceleyerek teklif sürecini başlatsın. Satış zorunluluğu yoktur.</p>
           </div>
           <span className="valuation-header-note">Ücretsiz başvuru<br /><b>Satış zorunluluğu yok</b></span>
         </header>

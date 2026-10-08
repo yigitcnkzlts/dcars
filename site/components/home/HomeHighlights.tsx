@@ -5,7 +5,7 @@ import { ArrowRight } from "lucide-react";
 const highlights = [
   [ScanSearch, "Kısa başvuru", "Araç bilgilerini adım adım paylaşın. Bildiğiniz hasarları ve ekspertiz detaylarını ekleyebilirsiniz."],
   [BadgeCheck, "Açık inceleme", "Kaporta durumunu işaretleyin, isterseniz fotoğraf ekleyin. İlk değerlendirme bu bilgilerle başlar."],
-  [ShieldCheck, "Karar sizde", "Ön değeri görün, randevu alın veya sizi aramamızı isteyin. Teklifi kabul etmek size kalır."],
+  [ShieldCheck, "Karar sizde", "Uzman incelemesi sonrasında hazırlanan teklifi değerlendirin. Teklifi kabul etmek size kalır."],
 ] as const;
 
 export function HomeHighlights() {

@@ -18,6 +18,10 @@ export type ValuationRequest = VehicleContext & {
   inspection?: VehicleInspection;
   factoryEquipment?: string[];
   optionalEquipment?: string[];
+  equipmentNotes?: string;
+  sunroof?: string;
+  chassisWork?: string;
+  mechanicalIssue?: string;
   preferredContactMethod?: ContactMethod;
   replacedParts?: string;
   paintedParts?: string;
@@ -26,6 +30,7 @@ export type ValuationRequest = VehicleContext & {
   condition?: string;
   accidentStatus?: string;
   damageNotes?: string;
+  customerNotes?: string;
   expectedPrice?: string;
   saleTiming?: string;
   city?: string;
