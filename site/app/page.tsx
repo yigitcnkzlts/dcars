@@ -10,10 +10,10 @@ export default function Home() {
     <main className="site-shell">
       <Navbar />
       <HeroSection />
+      <PremiumProcess />
       <section className="home-comparison" aria-label="Ana sayfa araç karşılaştırması">
         <VehicleComparison />
       </section>
-      <PremiumProcess />
       <HomeHighlights />
       <FaqSection />
     </main>
