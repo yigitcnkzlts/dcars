@@ -3229,3 +3229,14 @@ h1 em {
 }
 
 .button:hover svg { transform: none; }
+
+.home-comparison {
+    padding: clamp(52px, 7vw, 88px) max(20px, calc((100% - 1240px) / 2));
+    border-top: 1px solid #eceef2;
+    background: #f7f8fa;
+}
+
+.home-comparison .vehicle-comparison {
+    max-width: 1180px;
+    margin: 0 auto;
+}
