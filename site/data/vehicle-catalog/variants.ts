@@ -8,6 +8,7 @@ import { opelVariants } from "./opel";
 import { citroenVariants } from "./citroen";
 import { hyundaiVariants } from "./hyundai";
 import { cupraVariants } from "./cupra";
+import { nissanVariants } from "./nissan";
 
 export type VehicleVariant = {
   year: number;
@@ -44,14 +45,12 @@ const corolla2026Source = "https://www.toyota.com.tr/content/dam/toyota/nmsc/tur
 const petrolTrims = ["Vision Plus", "Dream", "Dream X-Pack", "Flame X-Pack", "Passion X-Pack"];
 const hybridTrims = ["Hybrid Dream", "Hybrid Dream X-Pack", "Hybrid Flame X-Pack", "Hybrid Passion X-Pack"];
 const qashqai2019Source = "https://www.nissan.com.tr/content/dam/Nissan/turkey/brochures/Nissan-Qashqai-Brosuru-Haziran-2019.pdf";
-const qashqai2026Source = "https://www.nissan.com.tr/fiyat-listesi/sifir-arac-fiyatlari-2026.html";
 const qashqai2019 = [
   { engine: "1.3 DIG-T 160 PS", fuelType: "Benzin", transmission: "6 ileri Manuel", trims: ["Visia", "Tekna", "Sky Pack"] },
   { engine: "1.3 DIG-T 160 PS", fuelType: "Benzin", transmission: "7 ileri DCT", trims: ["Visia", "Tekna", "Sky Pack", "Platinum Premium"] },
   { engine: "1.5 dCi 115 PS", fuelType: "Dizel", transmission: "6 ileri Manuel", trims: ["Visia", "Tekna", "Sky Pack"] },
   { engine: "1.5 dCi 115 PS", fuelType: "Dizel", transmission: "7 ileri DCT", trims: ["Visia", "Tekna", "Sky Pack", "Platinum Premium Pack"] },
 ];
-const qashqai2026Trims = ["Designpack", "Skypack", "Skypack 4x4", "N-Design", "Platinum", "Platinum 4x4", "Platinum Premium", "Platinum Premium 4x4"];
 const clio2020Source = "https://www.oyak-renault.com/wp-content/uploads/2020/06/OYAK-Grup-Sirketleri-Otomobil-Kampanyasi-Fiyat-Listesi-2020.pdf";
 const clio2020 = [
   { trim: "Joy", engine: "1.0 SCe 72 bg", fuelType: "Benzin", transmission: "5 ileri Manuel" },
@@ -72,13 +71,12 @@ const curatedVariants: VehicleVariant[] = [
   ...petrolTrims.map((trim) => ({ year: 2024, brand: "Toyota", model: "Corolla", engine: "1.5 L", fuelType: "Benzin", transmission: "Multidrive S", version: "1.5L Benzinli Multidrive S", trim, factoryEquipment: [], sourceUrl })),
   ...hybridTrims.map((trim) => ({ year: 2024, brand: "Toyota", model: "Corolla", engine: "1.8 L", fuelType: "Hibrit", transmission: "e-CVT", version: "1.8L Hybrid e-CVT", trim, factoryEquipment: [], sourceUrl })),
   ...qashqai2019.flatMap(({ engine, fuelType, transmission, trims }) => trims.map((trim) => ({ year: 2019, brand: "Nissan", model: "Qashqai", engine, fuelType, transmission, version: `${engine} · ${transmission}`, trim, factoryEquipment: [], sourceUrl: qashqai2019Source }))),
-  ...qashqai2026Trims.map((trim) => ({ year: 2026, brand: "Nissan", model: "Qashqai", engine: "1.3 DIG-T Mild Hybrid 158 PS", fuelType: "Hibrit", transmission: "Otomatik", version: "1.3 DIG-T Mild Hybrid 158 PS · Otomatik", trim, factoryEquipment: [], sourceUrl: qashqai2026Source })),
   ...clio2020.map(({ engine, fuelType, transmission, trim }) => ({ year: 2020, brand: "Renault", model: "Clio", engine, fuelType, transmission, version: `${engine} · ${transmission}`, trim, factoryEquipment: [], sourceUrl: clio2020Source })),
 ];
 
 const curatedWithGeneration = curatedVariants.map((variant): VehicleVariant => ({
   ...variant,
-  generation: variant.brand === "Renault" ? "Clio V" : variant.brand === "Nissan" ? (variant.year === 2019 ? "Qashqai J11" : "Qashqai J12") : "Corolla E210",
+  generation: variant.brand === "Renault" ? "Clio V" : variant.brand === "Nissan" ? "Qashqai J11" : "Corolla E210",
   yearFrom: variant.year,
   yearTo: variant.year,
   sourceUrls: [variant.sourceUrl],
@@ -87,4 +85,4 @@ const curatedWithGeneration = curatedVariants.map((variant): VehicleVariant => (
   lastUpdated: "2026-09-21",
 }));
 
-export const verifiedVariants: VehicleVariant[] = [...new Map([...curatedWithGeneration, ...peugeotVariants, ...renaultVariants, ...volkswagenVariants, ...fiatVariants, ...bmwVariants, ...opelVariants, ...citroenVariants, ...hyundaiVariants, ...cupraVariants, ...(importedVariants as VehicleVariant[])].filter((variant) => variant.verifiedLevel === "official" || variant.verifiedLevel === "trusted").map((variant) => [[variant.year, variant.brand, variant.model, variant.generation, variant.engine, variant.fuelType, variant.transmission, variant.version, variant.trim].join("|"), variant])).values()];
+export const verifiedVariants: VehicleVariant[] = [...new Map([...curatedWithGeneration, ...peugeotVariants, ...renaultVariants, ...volkswagenVariants, ...fiatVariants, ...bmwVariants, ...opelVariants, ...citroenVariants, ...hyundaiVariants, ...cupraVariants, ...nissanVariants, ...(importedVariants as VehicleVariant[])].filter((variant) => variant.verifiedLevel === "official" || variant.verifiedLevel === "trusted").map((variant) => [[variant.year, variant.brand, variant.model, variant.generation, variant.engine, variant.fuelType, variant.transmission, variant.version, variant.trim].join("|"), variant])).values()];
