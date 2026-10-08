@@ -5,6 +5,7 @@ import { Check, ChevronRight, Search, CarFront } from "lucide-react";
 import { BrandSelect } from "./BrandSelect";
 import { ModelSelect } from "./ModelSelect";
 import { selectedVariant, variantsFor, type VehicleSelection } from "@/services/vehicleCatalogService";
+import { getCsvTransmissions, getCsvFuelTypes, getCsvEngineLabels } from "@/services/csvCatalogService";
 import { getPackageSuggestions } from "@/services/vehiclePackageService";
 import type { VehicleVariant } from "@/data/vehicle-catalog/variants";
 
@@ -39,11 +40,46 @@ export function VehicleSelectionSteps({ phase, selection, color, onColor, onSele
   const [manualVersionOpen, setManualVersionOpen] = useState(false);
   const [manualVersion, setManualVersion] = useState("");
   const variants = variantsFor(selection.year ?? 0, selection.brand ?? "", selection.model ?? "");
-  const transmissions = variants.length ? [...new Set(variants.map((item) => item.transmission))] : ["Otomatik", "Manuel", "Yarı otomatik"];
+
+  // ── CSV catalog fallback ──────────────────────────────────────────────────
+  // When no verified variants exist for the selected year/brand/model,
+  // cascade-filter options from the unverified CSV catalog instead.
+  const hasCsvEngines = variants.length === 0;
+  const csvTransmissions = hasCsvEngines
+    ? getCsvTransmissions(selection.brand ?? "", selection.model ?? "", selection.year)
+    : [];
+  const csvFuelTypes = hasCsvEngines
+    ? getCsvFuelTypes(selection.brand ?? "", selection.model ?? "", selection.year)
+    : [];
+  const csvEngineLabels = hasCsvEngines
+    ? getCsvEngineLabels(
+        selection.brand ?? "",
+        selection.model ?? "",
+        selection.year,
+        selection.fuelType,
+        selection.transmission,
+      )
+    : [];
+  const usingCsvFallback = hasCsvEngines && (csvTransmissions.length > 0 || csvFuelTypes.length > 0 || csvEngineLabels.length > 0);
+  // ─────────────────────────────────────────────────────────────────────────
+
+  const transmissions = variants.length
+    ? [...new Set(variants.map((item) => item.transmission))]
+    : usingCsvFallback
+    ? csvTransmissions
+    : ["Otomatik", "Manuel", "Yarı otomatik"];
   const byTransmission = variants.filter((item) => item.transmission === selection.transmission);
-  const fuels = variants.length ? [...new Set(byTransmission.map((item) => item.fuelType))] : ["Benzin", "Dizel", "Hibrit", "Elektrik", "LPG"];
+  const fuels = variants.length
+    ? [...new Set(byTransmission.map((item) => item.fuelType))]
+    : usingCsvFallback
+    ? csvFuelTypes
+    : ["Benzin", "Dizel", "Hibrit", "Elektrik", "LPG"];
   const byFuel = byTransmission.filter((item) => item.fuelType === selection.fuelType);
-  const engines = [...new Set(byFuel.map((item) => item.engine))];
+  const engines = variants.length
+    ? [...new Set(byFuel.map((item) => item.engine))]
+    : usingCsvFallback
+    ? csvEngineLabels
+    : [];
   const matches = (text: string) => text.toLocaleLowerCase("tr-TR").includes(query.trim().toLocaleLowerCase("tr-TR"));
   const versions = byFuel.filter((item) => (!selection.engine || item.engine === selection.engine) && matches(versionLabel(item)));
   const packages = getPackageSuggestions(selection.brand ?? "", selection.model ?? "");
@@ -75,16 +111,19 @@ export function VehicleSelectionSteps({ phase, selection, color, onColor, onSele
         {phase === 2 && <ModelSelect grid brand={selection.brand ?? ""} value={selection.model ?? ""} onChange={(value) => onSelect("model", value)} />}
         {(phase === 3 || phase === 4) && (
           <>
-            {!variants.length && <p className="selection-notice">Bu model yılı için seçenekler katalogdan doğrulanamadı. Aracınızda bulunan bilgiyi seçin; başvuruda ayrıca kontrol edilecektir.</p>}
+            {!variants.length && !usingCsvFallback && <p className="selection-notice">Bu model yılı için seçenekler katalogdan doğrulanamadı. Aracınızda bulunan bilgiyi seçin; başvuruda ayrıca kontrol edilecektir.</p>}
+            {!variants.length && usingCsvFallback && <p className="selection-notice selection-notice--csv">Bu seçenekler genel araç veri tabanından alınmıştır; Türkiye pazarına özel olarak doğrulanmamıştır.</p>}
             <div className="vehicle-selection__cards">{(phase === 3 ? transmissions : fuels).map((value) => <Choice key={value} label={value} selected={(phase === 3 ? selection.transmission : selection.fuelType) === value} onClick={() => onSelect(phase === 3 ? "transmission" : "fuelType", value)} />)}</div>
           </>
         )}
         {phase === 5 && (
           <>
-            {!variants.length && <p className="selection-notice">Bu araç için doğrulanmış motor eşleşmesi bulunamadı. Motor bilgisini versiyon ekranında kontrollü manuel girişle belirtebilirsiniz.</p>}
+            {!variants.length && !usingCsvFallback && <p className="selection-notice">Bu araç için doğrulanmış motor eşleşmesi bulunamadı. Motor bilgisini versiyon ekranında kontrollü manuel girişle belirtebilirsiniz.</p>}
+            {!variants.length && usingCsvFallback && <p className="selection-notice selection-notice--csv">Bu motor seçenekleri genel araç veri tabanından alınmıştır; Türkiye pazarına özel olarak doğrulanmamıştır.</p>}
             <div className="vehicle-selection__cards">{engines.filter(matches).map((value) => <Choice key={value} label={value} selected={selection.engine === value} onClick={() => onSelect("engine", value)} />)}</div>
             {variants.length > 0 && !engines.length && <p className="vehicle-selection__empty">Seçilen yakıt ve vites için motor bulunamadı. Önceki seçimlerinizi kontrol edin.</p>}
-            {!variants.length && <Choice label="Katalogda bulunamadı" detail="Manuel bilgi gireceğim" selected={selection.engine === "Belirtilmedi"} onClick={() => onSelect("engine", "Belirtilmedi")} />}
+            {!variants.length && !usingCsvFallback && <Choice label="Katalogda bulunamadı" detail="Manuel bilgi gireceğim" selected={selection.engine === "Belirtilmedi"} onClick={() => onSelect("engine", "Belirtilmedi")} />}
+            {!variants.length && usingCsvFallback && !engines.filter(matches).length && <Choice label="Listede yok" detail="Manuel bilgi gireceğim" selected={selection.engine === "Belirtilmedi"} onClick={() => onSelect("engine", "Belirtilmedi")} />}
           </>
         )}
         {phase === 6 && (
