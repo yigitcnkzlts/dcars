@@ -32,9 +32,9 @@ function phaseFromDraft(draft: Draft) {
   if (!selection.transmission) return 3;
   if (!selection.fuelType) return 4;
   if (!selection.engine) return 5;
-  if (!selection.trim) return 6;
-  if (!color) return 7;
-  return 7;
+  if (!selection.trim) return 5;
+  if (!color) return 6;
+  return 6;
 }
 
 export function DetailedValuationFlow({ onVehicleChange }: { onVehicleChange?: (vehicle: VehicleContext) => void }) {
@@ -97,17 +97,20 @@ export function DetailedValuationFlow({ onVehicleChange }: { onVehicleChange?: (
   const variant = selectedVariant(selection);
   const setSelection = (field: keyof VehicleSelection, value: string | number) => {
     setDraft((current) => ({ ...current, selection: updateVehicleSelection(current.selection, field, value), color: "" }));
-    if (value) setVehiclePhase(Math.min(selectionFields.findIndex((item) => item === field) + 1, 7));
+    if (value) {
+      const nextPhase = field === "engine" ? 5 : selectionFields.findIndex((item) => item === field) + 1;
+      setVehiclePhase(Math.min(nextPhase, 6));
+    }
     setError("");
   };
   const chooseVersion = (chosen: NonNullable<typeof variant>) => {
     setDraft((current) => ({ ...current, selection: { ...current.selection, generation: chosen.generation, engine: chosen.engine, fuelType: chosen.fuelType, transmission: chosen.transmission, version: chosen.version, trim: chosen.trim } }));
-    setVehiclePhase(7);
+    setVehiclePhase(6);
     setError("");
   };
   const chooseFallbackVersion = (transmission: string, trim: string) => {
-    setVehiclePhase(7);
-    setDraft((current) => ({ ...current, selection: { ...current.selection, generation: undefined, engine: "Belirtilmedi", transmission, version: trim, trim } }));
+    setVehiclePhase(6);
+    setDraft((current) => ({ ...current, selection: { ...current.selection, generation: undefined, engine: current.selection.engine ?? "Belirtilmedi", transmission, version: trim, trim } }));
     setError("");
   };
   const setInspection = (part: InspectionPart, status: InspectionStatus) => setDraft((current) => ({ ...current, inspection: { ...current.inspection, [part]: status } }));
@@ -123,8 +126,9 @@ export function DetailedValuationFlow({ onVehicleChange }: { onVehicleChange?: (
   const removePhoto = (url: string) => { URL.revokeObjectURL(url); photoUrls.current = photoUrls.current.filter((item) => item !== url); setPhotos((current) => current.filter((item) => item.url !== url)); };
 
   const next = () => {
-    if (step === 0 && vehiclePhase < 7) {
-      if (!selection[selectionFields[vehiclePhase]]) { setError("Devam etmek için bir seçenek seçin."); return; }
+    if (step === 0 && vehiclePhase < 6) {
+      const missingSelection = vehiclePhase === 5 ? !selection.engine || !selection.trim : !selection[selectionFields[vehiclePhase]];
+      if (missingSelection) { setError(vehiclePhase === 5 ? "Devam etmek için motor ve versiyon / donanım seçin." : "Devam etmek için bir seçenek seçin."); return; }
       setVehiclePhase((current) => current + 1); setError(""); return;
     }
     if (step === 0 && (!selection.year || !selection.brand || !selection.model || !selection.transmission || !selection.fuelType || !selection.engine || !selection.trim || !draft.color)) { setError("Araç bilgilerini ve rengini tamamlayın."); return; }

@@ -25,9 +25,9 @@ const swatches: Record<string, string> = {
   Sarı: "#e2ba43", Yeşil: "#39765b", Bej: "#c4ad88", Kahverengi: "#66503e", Şampanya: "#c0aa83",
   Altın: "#c6a15b", Mor: "#72527b", Diğer: "#e9e9e9",
 };
-const labels = ["Model Yılı", "Marka", "Model", "Vites Tipi", "Yakıt Tipi", "Motor", "Versiyon / Donanım", "Renk"];
-const titles = ["Aracınızın model yılı nedir?", "Hangi marka aracı satıyorsunuz?", "Aracınızın modelini seçin", "Vites tipini seçin", "Yakıt tipini seçin", "Motor seçeneğini seçin", "Aracınızın versiyonunu seçin", "Aracınızın rengi"];
-const searchLabels = ["Yıla göre ara", "Markaya göre ara", "Modele göre ara", "", "", "Motor seçeneğinde ara", "Versiyona göre ara", ""];
+const labels = ["Model Yılı", "Marka", "Model", "Vites Tipi", "Yakıt Tipi", "Motor ve Donanım", "Renk"];
+const titles = ["Aracınızın model yılı nedir?", "Hangi marka aracı satıyorsunuz?", "Aracınızın modelini seçin", "Vites tipini seçin", "Yakıt tipini seçin", "Motor ve donanım paketini seçin", "Aracınızın rengi"];
+const searchLabels = ["Yıla göre ara", "Markaya göre ara", "Modele göre ara", "", "", "Motor ve versiyonda ara", ""];
 
 export function versionLabel(variant: VehicleVariant): string {
   const commercial = variant.version && variant.version !== `${variant.engine} · ${variant.transmission}` ? variant.version : "";
@@ -120,7 +120,10 @@ export function VehicleSelectionSteps({ phase, selection, color, onColor, onSele
   // Manuel giriş: hem verified hem paket yoksa, ya da kullanıcı bulamadı diyorsa
   const showManualAlways = !showVerifiedVersions;
   const matched = selectedVariant(selection);
-  const answers = [selection.year, selection.brand, selection.model, selection.transmission, selection.fuelType, selection.engine, matched ? versionLabel(matched) : selection.trim, color];
+  const motorAndTrim = selection.engine && selection.trim
+    ? `${selection.engine} · ${matched ? versionLabel(matched) : selection.trim}`
+    : selection.engine;
+  const answers = [selection.year, selection.brand, selection.model, selection.transmission, selection.fuelType, motorAndTrim, color];
   const years = Array.from({ length: new Date().getFullYear() + 2 - 1985 }, (_, index) => new Date().getFullYear() + 1 - index).filter((year) => matches(String(year)));
 
   return (
@@ -134,7 +137,7 @@ export function VehicleSelectionSteps({ phase, selection, color, onColor, onSele
           <h3 tabIndex={-1} data-selection-heading>{titles[phase]}</h3>
           <p>Seçiminizle bir sonraki adıma geçebilirsiniz.</p>
         </div>
-        {(phase === 0 || phase === 5 || phase === 6) && (
+        {(phase === 0 || phase === 5) && (
           <label className="selection-search">
             <Search size={18} aria-hidden="true" />
             <input aria-label={searchLabels[phase]} type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder={searchLabels[phase]} />
@@ -150,79 +153,31 @@ export function VehicleSelectionSteps({ phase, selection, color, onColor, onSele
         )}
         {phase === 5 && (
           <>
+            <p className="selection-source">Önce motoru, ardından uyumlu versiyon / donanımı seçin.</p>
             <div className="vehicle-selection__cards">{engines.filter(matches).map((value) => <Choice key={value} label={value} selected={selection.engine === value} onClick={() => onSelect("engine", value)} />)}</div>
             {engines.length > 0 && !engines.filter(matches).length && <p className="vehicle-selection__empty">Arama ile eşleşen motor bulunamadı. Aramayı temizleyin.</p>}
+            {selection.engine && (
+              <>
+                {showVerifiedVersions && <p className="selection-source"><Check size={14} /> Uyumlu doğrulanmış versiyon / donanımlar</p>}
+                {!showVerifiedVersions && showPackageSuggestions && <p className="selection-notice">Seçili kombinasyon için doğrulanmış paket bulunamadı. Model ailesine ait paket önerileri gösteriliyor.</p>}
+                {!showVerifiedVersions && !showPackageSuggestions && <p className="selection-notice">Bu motor kombinasyonu için doğrulanmış veya önerilen paket bulunamadı. Aşağıdan kendiniz ekleyebilirsiniz.</p>}
+                <div className="vehicle-selection__cards vehicle-selection__cards--versions">
+                  {showVerifiedVersions
+                    ? versions.map((item) => <Choice key={[item.generation, item.engine, item.version, item.trim, item.bodyType].join("|")} label={versionLabel(item)} detail={`${item.fuelType} · ${item.transmission}`} selected={matched === item} onClick={() => onVariant(item)} />)
+                    : filteredPackages.map((item) => <Choice key={item} label={item} detail="Paket önerisi" selected={selection.trim === item} onClick={() => onFallbackVersion(selection.transmission!, item)} />)}
+                </div>
+                {showManualAlways && <>
+                  <button type="button" className="vehicle-selection__unknown" aria-expanded={manualVersionOpen} onClick={() => setManualVersionOpen((open) => !open)}>Paketimi bulamadım</button>
+                  {manualVersionOpen && <div className="manual-version"><label htmlFor="manual-version">Paket / versiyon adı</label><div><input id="manual-version" value={manualVersion} onChange={(event) => setManualVersion(event.target.value)} placeholder="Örn. Titanium, Shine veya Edition" /><button type="button" disabled={!manualVersion.trim()} onClick={() => onFallbackVersion(selection.transmission!, manualVersion.trim())}>Paketi kullan</button></div></div>}
+                </>}
+              </>
+            )}
+            {!selection.engine && engines.length > 0 && (
+              <p className="selection-notice">Versiyon / donanım seçeneklerini görmek için bir motor seçin.</p>
+            )}
           </>
         )}
         {phase === 6 && (
-          <>
-            {showVerifiedVersions && (
-              <p className="selection-source"><Check size={14} /> Doğrulanmış katalog seçenekleri</p>
-            )}
-            {!showVerifiedVersions && showPackageSuggestions && (
-              <p className="selection-notice">Seçili kombinasyon için doğrulanmış paket bulunamadı. Model ailesine ait paket önerileri gösteriliyor.</p>
-            )}
-            {!showVerifiedVersions && !showPackageSuggestions && (
-              <p className="selection-notice">Bu yıl, motor ve şanzıman kombinasyonu için doğrulanmış veya önerilen paket bulunamadı. Aşağıdan kendiniz ekleyebilirsiniz.</p>
-            )}
-
-            <div className="vehicle-selection__cards vehicle-selection__cards--versions">
-              {showVerifiedVersions
-                ? versions.map((item) => (
-                    <Choice
-                      key={[item.generation, item.engine, item.version, item.trim, item.bodyType].join("|")}
-                      label={versionLabel(item)}
-                      detail={`${item.fuelType} · ${item.transmission}`}
-                      selected={matched === item}
-                      onClick={() => onVariant(item)}
-                    />
-                  ))
-                : filteredPackages.map((item) => (
-                    <Choice
-                      key={item}
-                      label={item}
-                      detail="Paket önerisi"
-                      selected={selection.trim === item}
-                      onClick={() => onFallbackVersion(selection.transmission!, item)}
-                    />
-                  ))}
-            </div>
-
-            {showManualAlways && (
-              <>
-                <button
-                  type="button"
-                  className="vehicle-selection__unknown"
-                  aria-expanded={manualVersionOpen}
-                  onClick={() => setManualVersionOpen((open) => !open)}
-                >
-                  Paketimi bulamadım
-                </button>
-                {manualVersionOpen && (
-                  <div className="manual-version">
-                    <label htmlFor="manual-version">Paket / versiyon adı</label>
-                    <div>
-                      <input
-                        id="manual-version"
-                        value={manualVersion}
-                        onChange={(event) => setManualVersion(event.target.value)}
-                        placeholder="Örn. Titanium, Shine veya Edition"
-                      />
-                      <button
-                        type="button"
-                        disabled={!manualVersion.trim()}
-                        onClick={() => onFallbackVersion(selection.transmission!, manualVersion.trim())}
-                      >
-                        Paketi kullan
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
-          </>
-        )}
-        {phase === 7 && (
           <div className="vehicle-selection__colors" role="group" aria-label="Araç rengi">
             {Object.entries(swatches).map(([name, swatch]) => (
               <button type="button" key={name} aria-pressed={color === name} className={color === name ? "vehicle-selection__color is-selected" : "vehicle-selection__color"} onClick={() => onColor(name)}>
