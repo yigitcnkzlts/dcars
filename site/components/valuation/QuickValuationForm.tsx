@@ -9,7 +9,6 @@ import { PackageSelect } from "./PackageSelect";
 import { ValuationWizard } from "./ValuationWizard";
 import type { VehicleContext } from "@/types/vehicle";
 import { optionsFor } from "@/services/vehicleCatalogService";
-import { getCsvEngineLabels, getCsvFuelTypes, getCsvTransmissions, isCsvCatalogAvailable } from "@/services/csvCatalogService";
 
 const steps = ["Araç", "Detaylar", "Kullanım", "Durum", "Başvuru"];
 const years = Array.from({ length: 70 }, (_, index) => new Date().getFullYear() + 1 - index);
@@ -39,29 +38,9 @@ export function QuickValuationForm({ onVehicleChange }: { onVehicleChange?: (veh
   const changeBrand = (value: string) => { setBrand(value); setModel(""); resetDetails(); notify({ ...vehicle, brand: value, model: "", engine: "", fuelType: "", transmission: "", trim: "" }); };
   const changeModel = (value: string) => { setModel(value); resetDetails(); notify({ ...vehicle, model: value, engine: "", fuelType: "", transmission: "", trim: "" }); };
   const changeTrim = (value: string) => { setTrim(value); notify({ ...vehicle, trim: value }); };
-  const engineOptions = useMemo(() => {
-    const verified = optionsFor({ year: Number(year), brand, model }, "engine");
-    if (verified.length > 0) return verified;
-    // Fall back to CSV catalog when no verified variants exist for this year/brand/model
-    if (isCsvCatalogAvailable()) return getCsvEngineLabels(brand, model, year ? Number(year) : undefined);
-    return [];
-  }, [year, brand, model]);
-
-  const fuelOptions = useMemo(() => {
-    const verified = optionsFor({ year: Number(year), brand, model, engine }, "fuelType");
-    const csvFuels = isCsvCatalogAvailable() && verified.length === 0
-      ? getCsvFuelTypes(brand, model, year ? Number(year) : undefined)
-      : [];
-    return [...new Set([...verified, ...csvFuels, ...fuelFallbacks])];
-  }, [year, brand, model, engine]);
-
-  const transmissionOptions = useMemo(() => {
-    const verified = optionsFor({ year: Number(year), brand, model, engine, fuelType }, "transmission");
-    const csvTrans = isCsvCatalogAvailable() && verified.length === 0
-      ? getCsvTransmissions(brand, model, year ? Number(year) : undefined, fuelType || undefined)
-      : [];
-    return [...new Set([...verified, ...csvTrans, ...transmissionFallbacks])];
-  }, [year, brand, model, engine, fuelType]);
+  const engineOptions = useMemo(() => optionsFor({ year: Number(year), brand, model }, "engine"), [year, brand, model]);
+  const fuelOptions = useMemo(() => [...new Set([...optionsFor({ year: Number(year), brand, model, engine }, "fuelType"), ...fuelFallbacks])], [year, brand, model, engine]);
+  const transmissionOptions = useMemo(() => [...new Set([...optionsFor({ year: Number(year), brand, model, engine, fuelType }, "transmission"), ...transmissionFallbacks])], [year, brand, model, engine, fuelType]);
   const canContinue = step === 0 ? Boolean(year && brand && model) : step === 1 ? Boolean(engine && fuelType && transmission && trim) : Boolean(mileage && Number(mileage) >= 0);
   const validation = step === 0 ? (!brand ? "Marka seçin" : !year ? "Model yılı seçin" : !model ? "Model seçin" : "") : step === 1 ? (!engine ? "Motor seçin veya bilmiyorum deyin" : !fuelType ? "Yakıt tipi seçin" : !transmission ? "Vites tipi seçin" : !trim ? "Donanım paketi seçin veya bilmiyorum deyin" : "") : !mileage ? "Kilometre girin" : "";
   const goNext = () => { if (!canContinue) return; if (step < 2) setStep((current) => current + 1); else setWizardOpen(true); };

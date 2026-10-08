@@ -8,35 +8,35 @@
  * Data source : https://github.com/gor3a/vehicle-makes-models
  * Data license: ODbL 1.0 — https://opendatacommons.org/licenses/odbl/1-0/
  *
- * The JSON is loaded once (module singleton) so subsequent calls are O(n)
- * array filters without I/O overhead.
+ * The JSON is read from disk once (module singleton) using fs.readFileSync so
+ * it does NOT get bundled into client-side JavaScript.  When the file is absent
+ * (e.g. a clean checkout before running import-csv-catalog.ts) every function
+ * returns an empty result instead of throwing.
  */
 
-// Next.js edge/Node can import JSON natively.
-// The file is gitignored; run `scripts/import-csv-catalog.ts` to regenerate.
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore – generated file may not exist in CI; handled by the null-guard below
-import rawCatalog from "@/data/vehicle-catalog/csv-catalog.json" assert { type: "json" };
+import * as fs from "node:fs";
+import * as path from "node:path";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 export interface CsvEngineEntry {
   make: string;
   model: string;
-  generation: string;
+  /** Generation name / label */
+  generation?: string;
   genYearStart: number | null;
   genYearEnd: number | null;
-  bodyType: string;
+  bodyType?: string;
   engineLabel: string;
   fuelType: string;
-  cylinders: number | null;
-  displacementCc: number | null;
-  powerHp: number | null;
-  torqueNm: number | null;
+  cylinders?: number | null;
+  displacementCc?: number | null;
+  powerHp?: number | null;
+  torqueNm?: number | null;
   transmission: string;
-  drivetrain: string;
-  zeroTo100s: number | null;
-  topSpeedKmh: number | null;
+  drivetrain?: string;
+  zeroTo100s?: number | null;
+  topSpeedKmh?: number | null;
 }
 
 export interface CsvModelEntry {
@@ -52,13 +52,39 @@ interface CatalogShape {
   engines: CsvEngineEntry[];
 }
 
-// ── Module-level data ─────────────────────────────────────────────────────────
+// ── Module-level singleton ────────────────────────────────────────────────────
 
-const catalog: CatalogShape | null = (rawCatalog as unknown as CatalogShape) ?? null;
+function loadCatalog(): CatalogShape | null {
+  // Only attempt to read in a server / Node.js environment.
+  if (typeof window !== "undefined") return null;
+
+  const catalogPath = path.join(
+    // __dirname is not available in ESM; resolve relative to this file's location
+    // via import.meta.url when available, otherwise fall back to process.cwd().
+    typeof __dirname !== "undefined"
+      ? __dirname
+      : path.dirname(new URL(import.meta.url).pathname),
+    "..",
+    "data",
+    "vehicle-catalog",
+    "csv-catalog.json",
+  );
+
+  try {
+    const raw = fs.readFileSync(catalogPath, "utf-8");
+    return JSON.parse(raw) as CatalogShape;
+  } catch {
+    // File does not exist yet — run `npx tsx scripts/import-csv-catalog.ts` to generate.
+    return null;
+  }
+}
+
+// Loaded once at module init time (server process lifetime).
+const catalog: CatalogShape | null = loadCatalog();
 
 // ── Public helpers ────────────────────────────────────────────────────────────
 
-/** Is the CSV catalog available? Returns false when the JSON hasn't been generated yet. */
+/** Returns false when csv-catalog.json has not been generated yet. */
 export function isCsvCatalogAvailable(): boolean {
   return catalog !== null && (catalog.engines?.length ?? 0) > 0;
 }
@@ -96,7 +122,11 @@ export function getCsvModelsForMake(make: string, year?: number): string[] {
  * Engine entries for a given make/model, optionally filtered by year.
  * Returns entries where genYearStart ≤ year ≤ genYearEnd (open-ended if null).
  */
-export function getCsvEnginesFor(make: string, model: string, year?: number): CsvEngineEntry[] {
+export function getCsvEnginesFor(
+  make: string,
+  model: string,
+  year?: number,
+): CsvEngineEntry[] {
   if (!catalog) return [];
   return catalog.engines.filter((e) => {
     if (e.make !== make || e.model !== model) return false;
@@ -108,10 +138,18 @@ export function getCsvEnginesFor(make: string, model: string, year?: number): Cs
 }
 
 /** Distinct fuel types available for make/model/(year). */
-export function getCsvFuelTypes(make: string, model: string, year?: number): string[] {
-  return [...new Set(getCsvEnginesFor(make, model, year).map((e) => e.fuelType).filter(Boolean))].sort(
-    (a, b) => a.localeCompare(b, "tr-TR"),
-  );
+export function getCsvFuelTypes(
+  make: string,
+  model: string,
+  year?: number,
+): string[] {
+  return [
+    ...new Set(
+      getCsvEnginesFor(make, model, year)
+        .map((e) => e.fuelType)
+        .filter(Boolean),
+    ),
+  ].sort((a, b) => a.localeCompare(b, "tr-TR"));
 }
 
 /** Distinct transmissions, cascade-filtered by fuelType when provided. */
@@ -159,10 +197,16 @@ export function getCsvEngineLabels(
  */
 export function getCsvModelYearRange(make: string, model: string): string | null {
   if (!catalog) return null;
-  const rows = catalog.models.filter((r) => r.make === make && r.model === model);
+  const rows = catalog.models.filter(
+    (r) => r.make === make && r.model === model,
+  );
   if (!rows.length) return null;
-  const starts = rows.map((r) => r.yearStart).filter((y): y is number => y !== null);
-  const ends = rows.map((r) => r.yearEnd).filter((y): y is number => y !== null);
+  const starts = rows
+    .map((r) => r.yearStart)
+    .filter((y): y is number => y !== null);
+  const ends = rows
+    .map((r) => r.yearEnd)
+    .filter((y): y is number => y !== null);
   if (!starts.length) return null;
   const from = Math.min(...starts);
   const to = ends.length ? Math.max(...ends) : null;
@@ -170,6 +214,10 @@ export function getCsvModelYearRange(make: string, model: string): string | null
 }
 
 /** Stats from the generated catalog file. */
-export function getCsvCatalogStats() {
+export function getCsvCatalogStats(): {
+  makes: number;
+  models: number;
+  engines: number;
+} {
   return catalog?.stats ?? { makes: 0, models: 0, engines: 0 };
 }
