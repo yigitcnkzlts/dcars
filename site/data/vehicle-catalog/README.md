@@ -12,6 +12,16 @@
 
 `verifiedLevel` üç değerden biridir: `official` (üretici/distribütör belgesi), `trusted` (iki ayrı güvenilir kaynak), `unverified` (yalnızca inceleme için). Hazır seçeneklerde yalnızca ilk iki düzey gösterilir. `catalog:check` komutu etkin katalogdaki tekrarları, yıl aralıklarını, kaynakları, doğrulama düzeylerini ve elektrikli araç motor hacmini kontrol eder. Gerekli olduğunda kullanıcı manuel araç girebilir; bu başvurular `catalogMatched: false` ile saklanır.
 
+`opel.ts`, Opel Türkiye'nin resmi Mayıs 2026 fiyat listesindeki Corsa, Frontera, Mokka, Astra ve Grandland benzin, dizel ve hibrit motor/şanzıman/donanım eşleşmelerini içerir. Aynı fiyat listesinde yer alan elektrikli modellerde şanzıman türü açıkça yazmadığından bu kayıtlar aktif kataloğa eklenmemiştir. Yeni kayıtlar ayrıca `market`, `sourceDocument`, `verifiedAt` ve `verificationStatus` alanlarını taşır.
+
+`citroen.ts`, Citroën Türkiye'nin Mart 2026 üretimli C4 ve C4 X Hybrid 145 dijital kataloglarındaki ë-DCS6 motor/şanzıman ile YOU ve MAX donanım sütunlarını içerir. Fiyat veya teknik belgede tüm ilişki açıkça kurulamadığı sürece diğer Citroën modelleri eklenmez.
+
+`hyundai.ts`, Hyundai Motor Türkiye'nin resmi kredi/fiyat sayfasında 2026 model yılıyla birlikte yayımlanan i20, Bayon, i30, Kona, Tucson ve Santa Fe varyantlarını içerir. Sayfada şanzımanı açıkça belirtilmeyen elektrikli modeller aktif kataloğa alınmamıştır.
+
+`cupra.ts`, CUPRA Türkiye'nin 1 Eylül 2026 tarihli resmi fiyat listesindeki Formentor, Terramar ve Leon 1.5 eTSI ACT 150 PS DSG donanım eşleşmelerini içerir.
+
+`npm run catalog:report`, doğrulanmış katalog için marka bazında model, yıl aralığı, motor kombinasyonu, versiyon, varyant ve kaynak sayılarını üretir.
+
 Yeni bir veri kaynağı eklendiğinde her satırda `year`, `brand`, `model`, `engine`, `fuelType`, `transmission`, `version`, `trim`, `factoryEquipment`, `sourceUrl`, `sourceUrls` ve `verifiedLevel` bulunmalıdır. Yıl, motor veya paket ilişkisi doğrulanmamış kayıtları hazır seçenek olarak göstermeyin. Katalogda kayıt yoksa manuel giriş kullanılabilir. Fabrika donanımı yalnızca doğrulanmış veri varsa doldurulur; kullanıcının işaretlediği ek donanımlar ayrı saklanır.
 
 ## Geniş katalog içe aktarımı

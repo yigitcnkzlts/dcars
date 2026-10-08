@@ -4,6 +4,10 @@ import { renaultVariants } from "./renault";
 import { volkswagenVariants } from "./volkswagen";
 import { fiatVariants } from "./fiat";
 import { bmwVariants } from "./bmw";
+import { opelVariants } from "./opel";
+import { citroenVariants } from "./citroen";
+import { hyundaiVariants } from "./hyundai";
+import { cupraVariants } from "./cupra";
 
 export type VehicleVariant = {
   year: number;
@@ -28,6 +32,10 @@ export type VehicleVariant = {
   verifiedLevel?: "official" | "trusted" | "unverified";
   lastUpdated?: string;
   sourceUrls?: string[];
+  market?: "TR";
+  sourceDocument?: string;
+  verifiedAt?: string;
+  verificationStatus?: "verified" | "needs_review" | "unverified";
 };
 
 // Source-backed examples only. This is not a complete Turkish vehicle catalog.
@@ -79,4 +87,4 @@ const curatedWithGeneration = curatedVariants.map((variant): VehicleVariant => (
   lastUpdated: "2026-09-21",
 }));
 
-export const verifiedVariants: VehicleVariant[] = [...new Map([...curatedWithGeneration, ...peugeotVariants, ...renaultVariants, ...volkswagenVariants, ...fiatVariants, ...bmwVariants, ...(importedVariants as VehicleVariant[])].filter((variant) => variant.verifiedLevel === "official" || variant.verifiedLevel === "trusted").map((variant) => [[variant.year, variant.brand, variant.model, variant.generation, variant.engine, variant.fuelType, variant.transmission, variant.version, variant.trim].join("|"), variant])).values()];
+export const verifiedVariants: VehicleVariant[] = [...new Map([...curatedWithGeneration, ...peugeotVariants, ...renaultVariants, ...volkswagenVariants, ...fiatVariants, ...bmwVariants, ...opelVariants, ...citroenVariants, ...hyundaiVariants, ...cupraVariants, ...(importedVariants as VehicleVariant[])].filter((variant) => variant.verifiedLevel === "official" || variant.verifiedLevel === "trusted").map((variant) => [[variant.year, variant.brand, variant.model, variant.generation, variant.engine, variant.fuelType, variant.transmission, variant.version, variant.trim].join("|"), variant])).values()];

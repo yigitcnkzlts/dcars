@@ -12,7 +12,8 @@
     "start": "vinext start",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "db:generate": "drizzle-kit generate",
-    "catalog:check": "tsx scripts/check-vehicle-catalog.ts"
+    "catalog:check": "tsx scripts/check-vehicle-catalog.ts",
+    "catalog:report": "tsx scripts/report-vehicle-catalog.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
