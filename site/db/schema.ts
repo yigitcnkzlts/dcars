@@ -82,6 +82,15 @@ export const valuationRequests = sqliteTable("valuation_requests", {
 	createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
 });
 
+export const valuationDrafts = sqliteTable("valuation_drafts", {
+	id: integer("id").primaryKey({ autoIncrement: true }),
+	firstName: text("first_name").notNull(),
+	phone: text("phone").notNull(),
+	vehicle: text("vehicle", { mode: "json" }).$type<Record<string, unknown>>().notNull(),
+	status: text("status").notNull().default("draft"),
+	createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
+});
+
 export const valuationPhotos = sqliteTable("valuation_photos", {
 	id: integer("id").primaryKey({ autoIncrement: true }),
 	requestId: integer("request_id").notNull().references(() => valuationRequests.id),

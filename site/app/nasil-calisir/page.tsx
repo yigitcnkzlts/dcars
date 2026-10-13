@@ -1,3 +1,6 @@
 import { ContentPage } from "@/components/layout/ContentPage";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = { title: "Nasıl Çalışır?", description: "D CARS teklif, araç inceleme, ödeme ve noter sürecinin adımları.", alternates: { canonical: "/nasil-calisir" } };
 
 export default function HowItWorksPage() { return <ContentPage eyebrow="NASIL ÇALIŞIR?" title="Teklif sürecini baştan bil." intro="Başvuru ücretsizdir. Formu doldurmak satış taahhüdü oluşturmaz; teklif ve sonraki adımlar araç incelendikten sonra netleşir." cta={{ label: "Teklif başvurusu başlat", href: "/arac-degerleme" }} items={[{ title: "Kısa başvuru", text: "Araç bilgilerini, kilometreyi, hasar durumunu ve tercih ettiğin iletişim zamanını paylaş." }, { title: "Fotoğraf ve ön inceleme", text: "Aracın genel görünüşünü ve varsa hasarlı bölgeleri fotoğrafla ekle. Fotoğraflar ilk görüşmeyi kolaylaştırır; fiziksel incelemenin yerini almaz." }, { title: "Araç kontrolü ve teklif", text: "Ekibin araç durumunu ve koşulları doğrulamasından sonra sana teklif iletilir. Başvuruda yazdığın hedef fiyat bağlayıcı değildir." }, { title: "Karar, ödeme ve devir", text: "Teklifi kabul edersen noter devri, ödeme yöntemi ve teslim zamanı birlikte kararlaştırılır." }]} />; }

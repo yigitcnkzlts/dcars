@@ -6,7 +6,8 @@ import { Navbar } from "@/components/layout/Navbar";
 import { demoVehicles, formatKm, formatPrice } from "@/lib/demoVehicles";
 
 export const metadata: Metadata = {
-  title: "Satılık Araçlar | D CARS",
+  title: "Araç Vitrini",
+  robots: { index: false, follow: false },
   description: "D CARS araç vitrini. Şu an gösterilen üç ilan örnektir; güncel satış ve stok bilgisi için iletişime geçin.",
 };
 

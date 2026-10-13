@@ -10,11 +10,12 @@ export function PrivacyControls() {
   const clearLocalData = () => {
     try {
       for (const key of draftKeys) localStorage.removeItem(key);
+      localStorage.removeItem("dcars-analytics-consent");
       for (let index = localStorage.length - 1; index >= 0; index--) {
         const key = localStorage.key(index);
         if (key?.startsWith("dcars-saved-")) localStorage.removeItem(key);
       }
-      setNotice("Bu tarayıcıdaki form taslakları ve kaydedilen araç tercihleri silindi. Gönderilmiş başvurular etkilenmedi.");
+      setNotice("Bu tarayıcıdaki form taslakları, araç tercihleri ve çerez tercihi silindi. Gönderilmiş başvurular etkilenmedi.");
     } catch {
       setNotice("Tarayıcı kayıtlarına erişilemedi. Tarayıcı ayarlarından site verilerini temizleyebilirsiniz.");
     }

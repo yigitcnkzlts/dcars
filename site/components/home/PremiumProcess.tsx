@@ -4,7 +4,7 @@ import Link from "@/components/layout/NativeLink";
 const steps = [
   [ClipboardList, "01", "Araç bilgileri", "Yıl, marka, model, vites, yakıt, versiyon ve rengi seçin."],
   [BadgeCheck, "02", "Kilometre ve ekspertiz", "Kilometre, tramer ve kaporta durumunu paylaşın. Fotoğraf eklemek isteğe bağlıdır."],
-  [CalendarCheck, "03", "Ön değerlendirme ve iletişim", "Bilgilerinizi kontrol edin; uzman incelemesi ve iletişim tercihinizi tamamlayın."],
+  [CalendarCheck, "03", "Teklif talebi ve iletişim", "Bilgilerinizi kontrol edin; teklif talebinizi ve iletişim tercihinizi tamamlayın."],
 ] as const;
 
 export function PremiumProcess() {

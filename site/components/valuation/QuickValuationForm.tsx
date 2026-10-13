@@ -50,8 +50,7 @@ export function QuickValuationForm({ onVehicleChange }: { onVehicleChange?: (veh
   const [csvTrans, setCsvTrans] = useState<string[]>([]);
 
   useEffect(() => {
-    if (!brand || !model) { setCsvEngines([]); return; }
-    if (verifiedEngines.length > 0) { setCsvEngines([]); return; }
+    if (!brand || !model || verifiedEngines.length > 0) return;
     const p = new URLSearchParams({ brand, model, field: "engine" });
     if (year) p.set("year", year);
     if (fuelType) p.set("fuelType", fuelType);
@@ -60,16 +59,14 @@ export function QuickValuationForm({ onVehicleChange }: { onVehicleChange?: (veh
   }, [brand, model, year, fuelType, transmission, verifiedEngines.length]);
 
   useEffect(() => {
-    if (!brand || !model) { setCsvFuels([]); return; }
-    if (verifiedFuels.length > 0) { setCsvFuels([]); return; }
+    if (!brand || !model || verifiedFuels.length > 0) return;
     const p = new URLSearchParams({ brand, model, field: "fuelType" });
     if (year) p.set("year", year);
     fetch(`/api/catalog-options?${p}`).then((r) => r.json()).then((data) => setCsvFuels(data as string[])).catch(() => setCsvFuels([]));
   }, [brand, model, year, verifiedFuels.length]);
 
   useEffect(() => {
-    if (!brand || !model) { setCsvTrans([]); return; }
-    if (verifiedTrans.length > 0) { setCsvTrans([]); return; }
+    if (!brand || !model || verifiedTrans.length > 0) return;
     const p = new URLSearchParams({ brand, model, field: "transmission" });
     if (year) p.set("year", year);
     fetch(`/api/catalog-options?${p}`).then((r) => r.json()).then((data) => setCsvTrans(data as string[])).catch(() => setCsvTrans([]));

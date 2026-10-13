@@ -6,8 +6,8 @@ export function HeroSection() {
     <section className="hero" aria-labelledby="hero-title">
       <div className="hero__copy">
         <p className="eyebrow">D CARS · Güvenilir Araç Değerleme Süreci</p>
-        <h1 id="hero-title">Aracınızın değerini öğrenin, teklifinizi değerlendirin.</h1>
-        <p>Araç bilgilerinizi paylaşın. D CARS aracınızı değerlendirerek sonraki adımları sizinle planlasın.</p>
+        <h1 id="hero-title">Aracınız için teklif alın, kararınızı güvenle verin.</h1>
+        <p>Araç bilgilerinizi paylaşın. Başvurunuzun ardından uzmanımız sizi 10 dakika içinde arasın.</p>
         <HeroValuationStart />
       </div>
       <div className="hero__visual">

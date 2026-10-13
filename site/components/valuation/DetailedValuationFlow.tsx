@@ -13,7 +13,7 @@ import { updateVehicleSelection, selectionFields } from "@/services/vehicleSelec
 import type { ContactMethod, InspectionPart, InspectionStatus, ValuationRequest, VehicleInspection } from "@/types/valuation";
 import type { VehicleContext } from "@/types/vehicle";
 
-const steps = ["Araç Bilgileri", "Kilometre ve Ekspertiz", "Ön Değerleme", "Randevu"];
+const steps = ["Araç Bilgileri", "Kilometre ve Ekspertiz", "Teklif Talebi", "Kontrol"];
 const equipmentOptions = ["Koltuk ısıtma", "Koltuk soğutma", "Direksiyon ısıtma", "Elektrikli koltuk", "Hafızalı koltuk", "Panoramik cam tavan", "Sunroof", "Adaptif hız sabitleyici", "Kör nokta uyarısı", "360 derece kamera", "Geri görüş kamerası", "Park sensörü", "Head-up display", "Premium ses sistemi", "Anahtarsız giriş", "Elektrikli bagaj", "Matrix LED far", "Diğer"];
 const photoAreas = ["Önden görünüm", "Arkadan görünüm", "Sağ yan", "Sol yan", "Ön iç konsol", "Koltuklar", "Kilometre göstergesi", "Motor bölümü", "Hasarlı bölge", "Ek fotoğraflar"];
 const draftKey = "dcars-detailed-valuation-v1";
@@ -47,6 +47,8 @@ export function DetailedValuationFlow({ onVehicleChange }: { onVehicleChange?: (
   const [agreed, setAgreed] = useState(false);
   const [error, setError] = useState("");
   const [sending, setSending] = useState(false);
+  const [draftSaving, setDraftSaving] = useState(false);
+  const [draftLeadId, setDraftLeadId] = useState<number>();
   const [requestId, setRequestId] = useState<number | null>(null);
   const photoUrls = useRef<string[]>([]);
   const draftRestored = useRef(false);
@@ -168,13 +170,26 @@ export function DetailedValuationFlow({ onVehicleChange }: { onVehicleChange?: (
     finally { setSending(false); }
   };
 
+  const saveLeadDraft = async () => {
+    const phone = contact.phone.replace(/\s/g, "");
+    if (!contact.firstName.trim() || !/^0?5\d{9}$/.test(phone)) { setError("Taslağı kaydetmek için adınızı ve geçerli cep telefonu numaranızı girin."); return; }
+    setDraftSaving(true); setError("");
+    try {
+      const response = await fetch("/api/valuation/draft", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ firstName: contact.firstName.trim(), phone, vehicle: { ...draft.selection, mileage: draft.mileage || undefined, color: draft.color || undefined } }) });
+      const result = await response.json() as { id?: number; error?: string };
+      if (!response.ok || !result.id) throw new Error(result.error || "Taslak kaydedilemedi.");
+      setDraftLeadId(result.id);
+    } catch (cause) { setError(cause instanceof Error ? cause.message : "Taslak kaydedilemedi."); }
+    finally { setDraftSaving(false); }
+  };
+
   if (requestId) {
     return (
       <section className="detailed-success" id="teklif-formu">
         <div className="success-mark"><Check /></div>
         <span className="vehicle-eyebrow">BAŞVURU ALINDI</span>
         <h2>Bilgileriniz değerlendirmeye alındı.</h2>
-        <p>Başvuru numaranız <strong>#{requestId}</strong>. Tercih ettiğiniz iletişim yöntemiyle size dönüş yapılacak; nihai teklif incelemeden sonra netleşecek.</p>
+        <p>Başvuru numaranız <strong>#{requestId}</strong>. Uzmanımız sizi 10 dakika içinde tercih ettiğiniz iletişim yöntemiyle arayacak; nihai teklif incelemeden sonra netleşecek.</p>
         <Link className="button button--primary" href="/basvuru-takip">Başvurumu kontrol et <ArrowRight size={17} /></Link>
       </section>
     );
@@ -204,6 +219,12 @@ export function DetailedValuationFlow({ onVehicleChange }: { onVehicleChange?: (
               onFallbackVersion={chooseFallbackVersion}
               onChangePhase={(phase) => { setVehiclePhase(phase); setError(""); }}
             />
+            <section className="early-lead" aria-labelledby="early-lead-title">
+              <div><span>FORMU KAYBETMEYİN</span><h3 id="early-lead-title">İletişim bilginizi erkenden bırakın.</h3><p>Formu tamamlayamazsanız kaldığınız yerden devam etmeniz için size ulaşalım.</p></div>
+              <div className="early-lead__fields"><ContactField label="Ad *" value={contact.firstName} onChange={(value) => setContact((current) => ({ ...current, firstName: value }))} placeholder="Adınız" /><ContactField label="Telefon *" type="tel" value={contact.phone} onChange={(value) => setContact((current) => ({ ...current, phone: value }))} placeholder="05XX XXX XX XX" /></div>
+              <button type="button" className="button button--ghost" onClick={saveLeadDraft} disabled={draftSaving || Boolean(draftLeadId)}>{draftLeadId ? `Taslak kaydedildi #${draftLeadId}` : draftSaving ? "Kaydediliyor..." : "Taslağı kaydet"}</button>
+              <small>Bu düğmeye bastığınızda adınız, telefonunuz ve seçtiğiniz araç bilgileri D CARS&apos;a iletilir. <Link href="/aydinlatma-metni" target="_blank">Aydınlatma metni</Link></small>
+            </section>
           </div>
         )}
         {step === 1 && (
@@ -339,7 +360,7 @@ export function DetailedValuationFlow({ onVehicleChange }: { onVehicleChange?: (
         </button>
         {step === steps.length - 1
           ? <button type="button" className="button button--primary" onClick={submit} disabled={sending}>{sending ? "Gönderiliyor..." : "Teklif talebi gönder"} <ArrowRight size={17} /></button>
-          : <button type="button" className="button button--primary" onClick={next}>{step === 2 ? "Ön değerlendirmeye geç" : "Devam et"} <ArrowRight size={17} /></button>}
+          : <button type="button" className="button button--primary" onClick={next}>{step === 2 ? "Başvuruyu kontrol et" : "Devam et"} <ArrowRight size={17} /></button>}
       </div>
     </section>
   );

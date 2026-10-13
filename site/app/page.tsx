@@ -3,7 +3,6 @@ import { HeroSection } from "@/components/home/HeroSection";
 import { PremiumProcess } from "@/components/home/PremiumProcess";
 import { HomeHighlights } from "@/components/home/HomeHighlights";
 import { FaqSection } from "@/components/home/FaqSection";
-import { VehicleComparison } from "@/components/ai/VehicleComparison";
 
 export default function Home() {
   return (
@@ -11,9 +10,6 @@ export default function Home() {
       <Navbar />
       <HeroSection />
       <PremiumProcess />
-      <section className="home-comparison" aria-label="Ana sayfa araç karşılaştırması">
-        <VehicleComparison />
-      </section>
       <HomeHighlights />
       <FaqSection />
     </main>

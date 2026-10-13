@@ -1,3 +1,6 @@
 import { ContentPage } from "@/components/layout/ContentPage";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = { title: "Aracımı Sat", description: "Aracınızın bilgilerini paylaşın ve ücretsiz D CARS teklif talebi oluşturun.", alternates: { canonical: "/aracimi-sat" } };
 
 export default function SellMyCarPage() { return <ContentPage eyebrow="ARACIMI SAT" title="Aracın için teklif iste." intro="Kısa başvuruyu doldur, aracın durumunu açıkça anlat ve varsa hasar fotoğraflarını ekle. İncelemenin ardından teklif koşulları için sana dönüş yapılır." cta={{ label: "Ücretsiz teklif iste", href: "/arac-degerleme" }} items={[{ title: "Araç bilgilerini gir", text: "Yıl, marka, model ve kilometreyle başla. Motor, paket ve bakım bilgilerini biliyorsan ekle." }, { title: "Hasarı açıkça göster", text: "Kaza veya boya varsa bölgesini anlat. En fazla beş fotoğraf ekleyip her birinin hangi bölgeye ait olduğunu seçebilirsin." }, { title: "Beklentini paylaş", text: "Satmayı düşündüğün zamanı ve varsa hedef fiyatını yaz. Başvurunu gönderdiğinde numarasını kaydet." }, { title: "Teklifi değerlendir", text: "Araç durumu doğrulandıktan sonra iletilen koşulları incele. Kabul edersen ödeme, noter ve teslim adımlarını birlikte planlayın." }]} />; }

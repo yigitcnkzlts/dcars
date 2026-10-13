@@ -1,11 +1,13 @@
 import { Mail } from "lucide-react";
 import Link from "@/components/layout/NativeLink";
+import { ContactActions } from "./ContactActions";
 
 export function TopBar() {
   return (
     <div className="topbar">
       <div className="topbar__inner">
         <div className="topbar__contact">
+          <ContactActions compact />
           <a href="mailto:info@dcars.tr"><Mail size={13} /><span>info@dcars.tr</span></a>
         </div>
         <div className="topbar__social">

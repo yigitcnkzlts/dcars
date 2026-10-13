@@ -49,10 +49,7 @@ export function VehicleSelectionSteps({ phase, selection, color, onColor, onSele
 
   // Fetch CSV transmissions when brand/model/year change and no verified variants
   useEffect(() => {
-    if (hasVerified || !selection.brand || !selection.model) {
-      setCsvTransmissions([]);
-      return;
-    }
+    if (hasVerified || !selection.brand || !selection.model) return;
     const params = new URLSearchParams({ brand: selection.brand, model: selection.model, field: "transmission" });
     if (selection.year) params.set("year", String(selection.year));
     fetch(`/api/catalog-options?${params}`).then((r) => r.json()).then((data) => setCsvTransmissions(data as string[])).catch(() => setCsvTransmissions([]));
@@ -60,10 +57,7 @@ export function VehicleSelectionSteps({ phase, selection, color, onColor, onSele
 
   // Fetch CSV fuel types when transmission changes
   useEffect(() => {
-    if (hasVerified || !selection.brand || !selection.model) {
-      setCsvFuels([]);
-      return;
-    }
+    if (hasVerified || !selection.brand || !selection.model) return;
     const params = new URLSearchParams({ brand: selection.brand, model: selection.model, field: "fuelType" });
     if (selection.year) params.set("year", String(selection.year));
     fetch(`/api/catalog-options?${params}`).then((r) => r.json()).then((data) => setCsvFuels(data as string[])).catch(() => setCsvFuels([]));
@@ -71,10 +65,7 @@ export function VehicleSelectionSteps({ phase, selection, color, onColor, onSele
 
   // Fetch CSV engines when fuelType or transmission changes
   useEffect(() => {
-    if (hasVerified || !selection.brand || !selection.model) {
-      setCsvEngines([]);
-      return;
-    }
+    if (hasVerified || !selection.brand || !selection.model) return;
     const params = new URLSearchParams({ brand: selection.brand, model: selection.model, field: "engine" });
     if (selection.year) params.set("year", String(selection.year));
     if (selection.fuelType) params.set("fuelType", selection.fuelType);

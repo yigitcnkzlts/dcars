@@ -7,7 +7,6 @@ import { TopBar } from "./TopBar";
 
 const links = [
   ["Ana Sayfa", "/"],
-  ["Satılık Araçlar", "/araclar"],
   ["Blog", "/blog"],
   ["SSS", "/sss"],
   ["Hakkımızda", "/hakkimizda"],
@@ -35,9 +34,9 @@ export function Navbar() {
           {links.map(([label, href]) => (
             <Link key={href} href={href} onClick={() => setOpen(false)}>{label}</Link>
           ))}
-          <Link className="nav-links__cta" href="/arac-degerleme?new=1" onClick={() => setOpen(false)}>Aracımı Değerle</Link>
+          <Link className="nav-links__cta" href="/arac-degerleme?new=1" onClick={() => setOpen(false)}>Teklif Al</Link>
         </nav>
-        <Link className="appointment" href="/arac-degerleme?new=1">Aracımı Değerle</Link>
+        <Link className="appointment" href="/arac-degerleme?new=1">Teklif Al</Link>
         <button className="menu-toggle" type="button" onClick={() => setOpen((value) => !value)} aria-label={open ? "Menüyü kapat" : "Menüyü aç"} aria-expanded={open}>
           {open ? <X /> : <Menu />}
         </button>
