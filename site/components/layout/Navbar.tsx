@@ -7,6 +7,7 @@ import { TopBar } from "./TopBar";
 
 const links = [
   ["Ana Sayfa", "/"],
+  ["Satılık Araçlar", "/araclar"],
   ["Blog", "/blog"],
   ["SSS", "/sss"],
   ["Hakkımızda", "/hakkimizda"],

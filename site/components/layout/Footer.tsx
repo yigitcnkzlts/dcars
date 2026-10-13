@@ -6,7 +6,7 @@ import { ArrowUpRight, Mail, MapPin } from "lucide-react";
 import { Logo } from "./Logo";
 import { ContactActions } from "./ContactActions";
 
-const quickLinks = [["Teklif Al", "/arac-degerleme?new=1"], ["Araç Karşılaştırma", "/arac-karsilastirma"], ["Blog", "/blog"], ["Başvuru Kontrolü", "/basvuru-takip"], ["S.S.S.", "/sss"], ["İletişim", "/iletisim"]] as const;
+const quickLinks = [["Teklif Al", "/arac-degerleme?new=1"], ["Satılık Araçlar", "/araclar"], ["Araç Karşılaştırma", "/arac-karsilastirma"], ["Blog", "/blog"], ["Başvuru Kontrolü", "/basvuru-takip"], ["S.S.S.", "/sss"], ["İletişim", "/iletisim"]] as const;
 const legalLinks = [["Gizlilik Sözleşmesi", "/gizlilik-sozlesmesi"], ["Aydınlatma Metni", "/aydinlatma-metni"], ["Çerez Politikası", "/cerez-politikasi"], ["Şartlar ve Koşullar", "/sartlar-ve-kosullar"]] as const;
 
 export function Footer() {

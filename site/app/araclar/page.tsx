@@ -20,7 +20,7 @@ export default function VehiclesPage() {
     <section className="vehicle-catalog__list" aria-label="Örnek araçlar">
       {demoVehicles.map((vehicle) => <article className="vehicle-card" key={vehicle.slug}>
         <Link className="vehicle-card__media" href={`/araclar/${vehicle.slug}`} aria-label={`${vehicle.title} örnek ilanını incele`}>
-          {vehicle.image ? <Image src={vehicle.image} alt={vehicle.imageAlt ?? vehicle.title} fill sizes="(max-width: 780px) 100vw, 36vw" /> : <span className="vehicle-media-placeholder"><CarFront size={48} strokeWidth={1.1} /><strong>{vehicle.title}</strong><small>Fotoğraf panelden eklenecek</small></span>}
+          {vehicle.images[0]?.url ? <Image src={vehicle.images[0].url} alt={vehicle.images[0].alt} fill sizes="(max-width: 780px) 100vw, 36vw" /> : <span className="vehicle-media-placeholder"><CarFront size={48} strokeWidth={1.1} /><strong>{vehicle.title}</strong><small>10 görsellik galeri hazır</small></span>}
           <span className="vehicle-card__badge">ÖRNEK İLAN</span>
         </Link>
         <div className="vehicle-card__body">
@@ -31,10 +31,12 @@ export default function VehiclesPage() {
             <tr><th scope="row">Vites</th><td>{vehicle.transmission}</td></tr>
             <tr><th scope="row">Renk</th><td>{vehicle.color}</td></tr>
           </tbody></table>
+          <p className="vehicle-card__description">{vehicle.description}</p>
+          <div className="vehicle-card__highlights">{vehicle.highlights.slice(0, 3).map((item) => <span key={item}>{item}</span>)}</div>
           <Link className="vehicle-card__link" href={`/araclar/${vehicle.slug}`}>Tüm bilgileri incele <ArrowUpRight size={17} /></Link>
         </div>
       </article>)}
     </section>
-    <aside className="vehicle-catalog__footnote">Gerçek ilanlar yayınlandığında araçların fotoğrafları, teknik bilgileri, fiyatları ve ekspertiz durumu burada gösterilecek.</aside>
+    <aside className="vehicle-catalog__footnote">Her araçta 10 görsellik galeri, ayrıntılı açıklama, donanım listesi, teknik bilgiler ve ekspertiz notları için hazır alan bulunur.</aside>
   </main></>;
 }
