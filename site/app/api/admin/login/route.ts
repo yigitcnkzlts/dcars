@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { adminSessions, adminUsers } from "@/db/schema";
 import { rateLimit, rateLimited, sameOrigin, verifyPassword } from "@/lib/security";
+import { databaseUnavailableResponse, isDatabaseUnavailable } from "@/lib/runtime-errors";
 
 export async function POST(request: Request) {
   if (!sameOrigin(request)) return Response.json({ error: "Geçersiz istek kaynağı." }, { status: 403 });
@@ -11,21 +12,27 @@ export async function POST(request: Request) {
   const email = input.email?.trim().toLowerCase() ?? "";
   const password = input.password ?? "";
   if (!/^\S+@\S+\.\S+$/.test(email) || password.length < 10 || password.length > 200) return Response.json({ error: "E-posta veya parola hatalı." }, { status: 401 });
-  const { getDb } = await import("@/db");
-  const db = getDb();
-  const [user] = await db.select().from(adminUsers).where(eq(adminUsers.email, email)).limit(1);
-  const userId: number | null = user?.id ?? null;
-  let role = user?.role === "admin" ? "admin" : "staff";
-  let valid = Boolean(user?.active && await verifyPassword(password, user.passwordHash));
-  // One-time bootstrap path; remove these variables after the first database user is provisioned.
-  if (!user && process.env.ADMIN_BOOTSTRAP_EMAIL && process.env.ADMIN_BOOTSTRAP_PASSWORD) {
-    valid = email === process.env.ADMIN_BOOTSTRAP_EMAIL.toLowerCase() && password === process.env.ADMIN_BOOTSTRAP_PASSWORD;
-    role = "admin";
+  try {
+    const { getDb } = await import("@/db");
+    const db = getDb();
+    const [user] = await db.select().from(adminUsers).where(eq(adminUsers.email, email)).limit(1);
+    const userId: number | null = user?.id ?? null;
+    let role = user?.role === "admin" ? "admin" : "staff";
+    let valid = Boolean(user?.active && await verifyPassword(password, user.passwordHash));
+    // One-time bootstrap path; remove these variables after the first database user is provisioned.
+    if (!user && process.env.ADMIN_BOOTSTRAP_EMAIL && process.env.ADMIN_BOOTSTRAP_PASSWORD) {
+      valid = email === process.env.ADMIN_BOOTSTRAP_EMAIL.toLowerCase() && password === process.env.ADMIN_BOOTSTRAP_PASSWORD;
+      role = "admin";
+    }
+    if (!valid) return Response.json({ error: "E-posta veya parola hatalı." }, { status: 401 });
+    const id = crypto.randomUUID();
+    const expiresAt = new Date(Date.now() + 8 * 3600_000).toISOString();
+    await db.insert(adminSessions).values({ id, adminUserId: userId, role, expiresAt });
+    if (userId) await db.update(adminUsers).set({ lastLoginAt: new Date().toISOString() }).where(eq(adminUsers.id, userId));
+    return Response.json({ role }, { headers: { "Set-Cookie": `dcars_admin_session=${encodeURIComponent(id)}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=28800`, "Cache-Control": "no-store" } });
+  } catch (error) {
+    if (isDatabaseUnavailable(error)) return databaseUnavailableResponse("Yönetici girişi");
+    console.error("Admin login failed", { message: error instanceof Error ? error.message : "unknown" });
+    return Response.json({ error: "Yönetici girişi şu anda tamamlanamıyor." }, { status: 500 });
   }
-  if (!valid) return Response.json({ error: "E-posta veya parola hatalı." }, { status: 401 });
-  const id = crypto.randomUUID();
-  const expiresAt = new Date(Date.now() + 8 * 3600_000).toISOString();
-  await db.insert(adminSessions).values({ id, adminUserId: userId, role, expiresAt });
-  if (userId) await db.update(adminUsers).set({ lastLoginAt: new Date().toISOString() }).where(eq(adminUsers.id, userId));
-  return Response.json({ role }, { headers: { "Set-Cookie": `dcars_admin_session=${encodeURIComponent(id)}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=28800`, "Cache-Control": "no-store" } });
 }

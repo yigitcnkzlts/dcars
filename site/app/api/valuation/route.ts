@@ -6,6 +6,7 @@ import { selectedVariant } from "@/services/vehicleCatalogService";
 import { rateLimit, rateLimited, sameOrigin, sha256 } from "@/lib/security";
 import { enqueueNotification, notificationText } from "@/services/notificationService";
 import { sanitizeImage } from "@/services/imageSecurity";
+import { databaseUnavailableResponse, isDatabaseUnavailable } from "@/lib/runtime-errors";
 
 const maxPhotos = 15;
 const maxPhotoBytes = 4 * 1024 * 1024;
@@ -80,9 +81,10 @@ export async function POST(request: Request) {
     try { await enqueueNotification({ type: "valuation_received", referenceType: "valuation", referenceId: result.id, dedupeKey: `valuation:${result.id}:received`, payload: { message }, channels: [{ channel: "in_app" }, ...(payload.email ? [{ channel: "email" as const, destination: payload.email }] : []), { channel: "sms", destination: payload.phone }] }); } catch (notificationError) { console.error("Notification enqueue failed", { requestId: result.id, error: notificationError instanceof Error ? notificationError.message : "unknown" }); }
     return Response.json({ id: requestId, photoCount: prepared.length }, { status: 201 });
   } catch (error) {
-    console.error("Valuation request failed", error);
+    console.error("Valuation request failed", { message: error instanceof Error ? error.message : "unknown" });
     for (const key of storedKeys) { try { await bucket?.delete(key); } catch (cleanupError) { console.error("Photo cleanup failed", cleanupError); } }
     if (requestId) { try { const { getDb } = await import("@/db"); await getDb().delete(valuationPhotos).where(eq(valuationPhotos.requestId, requestId)); await getDb().delete(consentRecords).where(eq(consentRecords.requestId, requestId)); await getDb().delete(valuationRequests).where(eq(valuationRequests.id, requestId)); } catch (cleanupError) { console.error("Request cleanup failed", cleanupError); } }
+    if (isDatabaseUnavailable(error)) return databaseUnavailableResponse("Başvuru sistemi");
     return Response.json({ error: "Talep kaydedilemedi. Bilgileriniz ekranda duruyor; tekrar deneyin." }, { status: 500 });
   }
 }
