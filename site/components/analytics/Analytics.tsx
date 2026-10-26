@@ -6,6 +6,13 @@ import { useSyncExternalStore } from "react";
 const consentKey = "dcars-analytics-consent";
 const gaId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 const pixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID;
+type Consent = { necessary: true; analytics: boolean; marketing: boolean };
+
+const serverConsent: Consent = Object.freeze({ necessary: true, analytics: false, marketing: false });
+const acceptedConsent: Consent = Object.freeze({ necessary: true, analytics: true, marketing: true });
+const rejectedConsent: Consent = Object.freeze({ necessary: true, analytics: false, marketing: false });
+let cachedRawConsent: string | null | undefined;
+let cachedConsent: Consent | null;
 
 export function Analytics() {
   const consent = useSyncExternalStore(subscribe, readConsent, () => null);
@@ -17,7 +24,7 @@ export function Analytics() {
 }
 
 export function CookieConsent() {
-  const consent = useSyncExternalStore(subscribe, readConsent, () => ({ necessary: true, analytics: false, marketing: false }));
+  const consent = useSyncExternalStore(subscribe, readConsent, getServerConsent);
   const choose = (analytics: boolean, marketing: boolean) => {
     localStorage.setItem(consentKey, JSON.stringify({ necessary: true, analytics, marketing, updatedAt: new Date().toISOString() }));
     window.dispatchEvent(new Event("dcars:consent"));
@@ -26,5 +33,35 @@ export function CookieConsent() {
   return <aside className="cookie-consent" aria-label="Çerez tercihi"><p>Zorunlu depolama her zaman aktiftir. Analiz ve pazarlama kategorileri yalnızca izninizle etkinleşir. <a href="/cerez-politikasi">Detayları inceleyin.</a></p><div><button type="button" onClick={() => choose(false, false)}>Yalnızca zorunlu</button><button type="button" onClick={() => choose(true, false)}>Analize izin ver</button><button type="button" onClick={() => choose(true, true)}>Tümüne izin ver</button></div></aside>;
 }
 
-function subscribe(callback: () => void) { window.addEventListener("dcars:consent", callback); return () => window.removeEventListener("dcars:consent", callback); }
-function readConsent(): { necessary: true; analytics: boolean; marketing: boolean } | null { const raw = localStorage.getItem(consentKey); if (!raw) return null; if (raw === "accepted") return { necessary: true, analytics: true, marketing: true }; if (raw === "rejected") return { necessary: true, analytics: false, marketing: false }; try { const parsed = JSON.parse(raw) as { analytics?: boolean; marketing?: boolean }; return { necessary: true, analytics: parsed.analytics === true, marketing: parsed.marketing === true }; } catch { return null; } }
+function getServerConsent() { return serverConsent; }
+
+function subscribe(callback: () => void) {
+  const onStorage = (event: StorageEvent) => { if (event.key === consentKey) callback(); };
+  window.addEventListener("dcars:consent", callback);
+  window.addEventListener("storage", onStorage);
+  return () => {
+    window.removeEventListener("dcars:consent", callback);
+    window.removeEventListener("storage", onStorage);
+  };
+}
+
+function readConsent(): Consent | null {
+  const raw = localStorage.getItem(consentKey);
+  if (raw === cachedRawConsent) return cachedConsent;
+
+  cachedRawConsent = raw;
+  if (!raw) return cachedConsent = null;
+  if (raw === "accepted") return cachedConsent = acceptedConsent;
+  if (raw === "rejected") return cachedConsent = rejectedConsent;
+
+  try {
+    const parsed = JSON.parse(raw) as { analytics?: boolean; marketing?: boolean };
+    return cachedConsent = Object.freeze({
+      necessary: true,
+      analytics: parsed.analytics === true,
+      marketing: parsed.marketing === true,
+    });
+  } catch {
+    return cachedConsent = null;
+  }
+}
