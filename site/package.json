@@ -13,7 +13,11 @@
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "db:generate": "drizzle-kit generate",
     "catalog:check": "tsx scripts/check-vehicle-catalog.ts",
-    "catalog:report": "tsx scripts/report-vehicle-catalog.ts"
+    "catalog:report": "tsx scripts/report-vehicle-catalog.ts",
+    "test:otoapi": "tsx scripts/test-otoapi-service.ts",
+    "test:vehicle-options": "tsx scripts/test-vehicle-option-fallbacks.ts",
+    "test:secure-features": "tsx scripts/test-secure-features.ts",
+    "test:schema": "tsx scripts/test-schema-consistency.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

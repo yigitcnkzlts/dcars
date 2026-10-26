@@ -169,9 +169,12 @@ a {
     display: flex;
     align-items: center;
     gap: 11px;
-    min-width: 178px;
+    min-width: 52px;
     flex-shrink: 0;
 }
+
+.brand-mark__image { width: 52px; height: 52px; object-fit: contain; border-radius: 50%; }
+.site-footer .brand-mark__image { width: 76px; height: 76px; }
 
 .brand-mark__symbol {
     display: grid;
@@ -954,6 +957,8 @@ h1 em {
     .brand-mark {
         min-width: 0;
     }
+
+    .brand-mark__image { width: 44px; height: 44px; }
 
     .brand-mark__symbol {
         width: 34px;
@@ -2218,6 +2223,17 @@ h1 em {
 .site-footer__brand p { max-width: 360px; margin: 28px 0; color: #9d9a93; font-size: 15px; line-height: 1.7; }
 .site-footer__brand > a { display: inline-flex; align-items: center; gap: 8px; color: #d0aa70; font-size: 14px; }
 .site-footer__brand > a svg { transition: transform .3s cubic-bezier(.22, 1, .36, 1); }
+
+.secure-photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.secure-photo-grid button { padding: 0; overflow: hidden; border: 1px solid #ddd; border-radius: 12px; background: #111827; cursor: zoom-in; }
+.secure-photo-grid img { display: block; width: 100%; height: 150px; object-fit: cover; }
+.photo-lightbox { position: fixed; inset: 0; z-index: 1000; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 24px; background: rgba(4, 8, 18, .94); color: white; }
+.photo-lightbox > img { width: 100%; height: min(78vh, 800px); object-fit: contain; }
+.photo-lightbox > :first-child { position: absolute; top: 16px; right: 16px; }
+.photo-lightbox p { grid-column: 1 / -1; text-align: center; }
+.notification-row { display: grid; gap: 4px; width: 100%; padding: 14px; text-align: left; border: 1px solid #ddd; border-radius: 10px; background: #fff; }
+.notification-row[data-read="false"] { border-left: 4px solid #d0aa70; background: #fffaf1; }
+@media (max-width: 640px) { .photo-lightbox { grid-template-columns: 42px minmax(0, 1fr) 42px; padding: 12px; } .secure-photo-grid { grid-template-columns: repeat(2, 1fr); } }
 .site-footer h2 { margin: 5px 0 25px; color: #d0aa70; font-size: 12px; letter-spacing: .13em; text-transform: uppercase; }
 .site-footer nav { display: grid; gap: 15px; }
 .site-footer nav a { position: relative; width: fit-content; color: #aaa7a0; font-size: 14px; transition: color .25s ease, transform .3s cubic-bezier(.22, 1, .36, 1); }

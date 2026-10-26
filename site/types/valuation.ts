@@ -41,4 +41,6 @@ export type ValuationRequest = VehicleContext & {
   lastName: string;
   phone: string;
   email: string;
+  privacyNoticeAccepted?: boolean;
+  marketingConsent?: boolean;
 };

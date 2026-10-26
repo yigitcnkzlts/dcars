@@ -1,8 +1,11 @@
 import { getDb } from "@/db";
 import { valuationDrafts } from "@/db/schema";
+import { rateLimit, rateLimited, sameOrigin } from "@/lib/security";
 
 export async function POST(request: Request) {
   try {
+    if (!sameOrigin(request)) return Response.json({ error: "Geçersiz istek kaynağı." }, { status: 403 });
+    const limited = await rateLimit(request, "valuation-draft", 4, 3600); if (!limited.allowed) return rateLimited(limited.retryAfter);
     const payload = await request.json() as { firstName?: string; phone?: string; vehicle?: Record<string, unknown> };
     const firstName = payload.firstName?.trim() ?? "";
     const phone = payload.phone?.replace(/\s/g, "") ?? "";

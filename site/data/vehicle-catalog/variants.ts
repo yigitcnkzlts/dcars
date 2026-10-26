@@ -7,6 +7,7 @@ import { bmwVariants } from "./bmw";
 import { opelVariants } from "./opel";
 import { citroenVariants } from "./citroen";
 import { hyundaiVariants } from "./hyundai";
+import { hyundai2021Variants } from "./hyundai-2021";
 import { cupraVariants } from "./cupra";
 import { nissanVariants } from "./nissan";
 
@@ -85,4 +86,4 @@ const curatedWithGeneration = curatedVariants.map((variant): VehicleVariant => (
   lastUpdated: "2026-09-21",
 }));
 
-export const verifiedVariants: VehicleVariant[] = [...new Map([...curatedWithGeneration, ...peugeotVariants, ...renaultVariants, ...volkswagenVariants, ...fiatVariants, ...bmwVariants, ...opelVariants, ...citroenVariants, ...hyundaiVariants, ...cupraVariants, ...nissanVariants, ...(importedVariants as VehicleVariant[])].filter((variant) => variant.verifiedLevel === "official" || variant.verifiedLevel === "trusted").map((variant) => [[variant.year, variant.brand, variant.model, variant.generation, variant.engine, variant.fuelType, variant.transmission, variant.version, variant.trim].join("|"), variant])).values()];
+export const verifiedVariants: VehicleVariant[] = [...new Map([...curatedWithGeneration, ...peugeotVariants, ...renaultVariants, ...volkswagenVariants, ...fiatVariants, ...bmwVariants, ...opelVariants, ...citroenVariants, ...hyundaiVariants, ...hyundai2021Variants, ...cupraVariants, ...nissanVariants, ...(importedVariants as VehicleVariant[])].filter((variant) => variant.verifiedLevel === "official" || variant.verifiedLevel === "trusted").map((variant) => [[variant.year, variant.brand, variant.model, variant.generation, variant.engine, variant.fuelType, variant.transmission, variant.version, variant.trim].join("|"), variant])).values()];

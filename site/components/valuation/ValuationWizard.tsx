@@ -23,6 +23,7 @@ export function ValuationWizard({ vehicle, onClose }: Props) {
   const [form, setForm] = useState<ValuationRequest>({ ...initial, ...vehicle });
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [agreed, setAgreed] = useState(false);
+  const marketingConsent = false;
   const [submitted, setSubmitted] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
@@ -67,7 +68,7 @@ export function ValuationWizard({ vehicle, onClose }: Props) {
     setSending(true);
     try {
       const data = new FormData();
-      data.set("payload", JSON.stringify(form));
+      data.set("payload", JSON.stringify({ ...form, privacyNoticeAccepted: agreed, marketingConsent }));
       photos.forEach((photo, index) => { data.append("photos", photo.file); data.set(`photoArea${index}`, photo.area); });
       const response = await fetch("/api/valuation", { method: "POST", body: data });
       if (response.status === 413) throw new Error("Fotoğrafların toplam boyutu çok büyük. Daha küçük dosyalar seçip tekrar deneyin.");

@@ -29,6 +29,13 @@
       "when": 1791875686662,
       "tag": "0003_gray_eternals",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1793023200000,
+      "tag": "0004_secure_operations",
+      "breakpoints": true
     }
   ]
 }

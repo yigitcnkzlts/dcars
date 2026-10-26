@@ -16,6 +16,8 @@
 
 import * as fs from "node:fs";
 import * as path from "node:path";
+import { transmissionMatches } from "./vehicleOptionNormalization";
+import { licensedTechnicalFallbacks } from "@/data/vehicle-catalog/licensed-technical-fallbacks";
 
 // ── UI → CSV model name mapping ───────────────────────────────────────────────
 // vehicleDataService.ts uses Turkish/localised model names; the CSV uses
@@ -44,6 +46,9 @@ const MODEL_NAME_MAP: Record<string, string[]> = {
   // Volkswagen (VW model names are mostly same)
   // Generic
   "C-HR": ["C-HR"],
+  // The licensed source labels the regular fourth-generation Focus range as
+  // Focus US. Focus ST is kept separate and is not silently folded into Focus.
+  "Focus": ["Focus US"],
 };
 
 /** Expand a UI model name to all possible CSV model names (including itself). */
@@ -127,7 +132,7 @@ const catalog: CatalogShape | null = loadCatalog();
 
 /** Returns false when csv-catalog.json has not been generated yet. */
 export function isCsvCatalogAvailable(): boolean {
-  return catalog !== null && (catalog.engines?.length ?? 0) > 0;
+  return (catalog?.engines?.length ?? 0) > 0 || licensedTechnicalFallbacks.length > 0;
 }
 
 /** All unique make names in the CSV catalog, sorted alphabetically. */
@@ -168,15 +173,18 @@ export function getCsvEnginesFor(
   model: string,
   year?: number,
 ): CsvEngineEntry[] {
-  if (!catalog) return [];
   const modelVariants = expandModelName(model);
-  return catalog.engines.filter((e) => {
+  const catalogRows = catalog?.engines ?? [];
+  const rows = catalogRows.some((entry) => entry.make === make && modelVariants.includes(entry.model))
+    ? catalogRows
+    : licensedTechnicalFallbacks;
+  return [...new Map(rows.filter((e) => {
     if (e.make !== make || !modelVariants.includes(e.model)) return false;
     if (!year) return true;
     const from = e.genYearStart ?? 0;
     const to = e.genYearEnd ?? new Date().getFullYear() + 2;
     return year >= from && year <= to;
-  });
+  }).map((entry) => [[entry.make, entry.model, entry.generation, entry.engineLabel, entry.fuelType, entry.transmission].join("|"), entry])).values()];
 }
 
 /** Distinct fuel types available for make/model/(year). */
@@ -184,10 +192,12 @@ export function getCsvFuelTypes(
   make: string,
   model: string,
   year?: number,
+  transmission?: string,
 ): string[] {
   return [
     ...new Set(
       getCsvEnginesFor(make, model, year)
+        .filter((e) => transmissionMatches(e.transmission, transmission))
         .map((e) => e.fuelType)
         .filter(Boolean),
     ),
@@ -225,7 +235,7 @@ export function getCsvEngineLabels(
         .filter(
           (e) =>
             (!fuelType || e.fuelType === fuelType) &&
-            (!transmission || e.transmission === transmission),
+            transmissionMatches(e.transmission, transmission),
         )
         .map((e) => e.engineLabel)
         .filter(Boolean),

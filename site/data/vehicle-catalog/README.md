@@ -16,7 +16,7 @@
 
 `citroen.ts`, Citroën Türkiye'nin Mart 2026 üretimli C4 ve C4 X Hybrid 145 dijital kataloglarındaki ë-DCS6 motor/şanzıman ile YOU ve MAX donanım sütunlarını içerir. Fiyat veya teknik belgede tüm ilişki açıkça kurulamadığı sürece diğer Citroën modelleri eklenmez.
 
-`hyundai.ts`, Hyundai Motor Türkiye'nin resmi kredi/fiyat sayfasında 2026 model yılıyla birlikte yayımlanan i20, Bayon, i30, Kona, Tucson ve Santa Fe varyantlarını içerir. Sayfada şanzımanı açıkça belirtilmeyen elektrikli modeller aktif kataloğa alınmamıştır.
+`hyundai.ts`, Hyundai Motor Türkiye'nin resmi kredi/fiyat sayfasında 2026 model yılıyla birlikte yayımlanan i20, Bayon, i30, Kona, Tucson ve Santa Fe varyantlarını içerir. `hyundai-2021.ts`, tarihli 2021 MY fiyat listesi ile doğrulanan i10, i20, Kona, Elantra ve Tucson satırlarını; iki dönemsel kaynakla çapraz doğrulanan Bayon ve Santa Fe satırlarını ayrı güven seviyesinde içerir. Şanzımanı açıkça belirtilmeyen elektrikli modeller aktif kataloğa alınmamıştır.
 
 `cupra.ts`, CUPRA Türkiye'nin 1 Eylül 2026 tarihli resmi fiyat listesindeki Formentor, Terramar ve Leon 1.5 eTSI ACT 150 PS DSG donanım eşleşmelerini içerir.
 

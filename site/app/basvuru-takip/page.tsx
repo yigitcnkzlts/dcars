@@ -1,43 +1,19 @@
 "use client";
-
 import { useState } from "react";
 import Link from "@/components/layout/NativeLink";
-import { ArrowUpRight, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { Navbar } from "@/components/layout/Navbar";
 
-type Result = { id: number; vehicle: string; status: string; photoCount: number; createdAt: string; offer?: { low: number; high: number; updatedAt: string } | null; appointment?: { slot: string; requestedAt?: string; confirmedAt?: string } | null };
-const stages = [{ id: "received", label: "Başvuru alındı" }, { id: "reviewing", label: "İnceleniyor" }, { id: "offered", label: "Teklif hazır" }, { id: "appointment_requested", label: "Randevu talep edildi" }, { id: "appointment_confirmed", label: "Randevu onaylandı" }];
-
-export default function ApplicationStatusPage() {
-  const [id, setId] = useState("");
-  const [phone, setPhone] = useState("");
-  const [result, setResult] = useState<Result | null>(null);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [slot, setSlot] = useState("");
-  const [booking, setBooking] = useState(false);
-  const lookup = async (event: React.FormEvent) => {
-    event.preventDefault();
-    setLoading(true); setError(""); setResult(null);
-    try {
-      const response = await fetch("/api/valuation/status", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, phone }) });
-      const data = await response.json() as Result & { error?: string };
-      if (!response.ok) throw new Error(data.error || "Başvuru sorgulanamadı.");
-      setResult(data);
-    } catch (cause) { setError(cause instanceof Error ? cause.message : "Bağlantı kurulamadı."); }
-    finally { setLoading(false); }
-  };
-  const emailHref = result ? `mailto:info@dcars.tr?subject=${encodeURIComponent(`Başvuru #${result.id} için ek bilgi`)}&body=${encodeURIComponent(`Merhaba, #${result.id} numaralı başvuruma ek bilgi paylaşmak istiyorum.`)}` : "mailto:info@dcars.tr";
-  const requestAppointment = async () => {
-    if (!result || !slot) return;
-    setBooking(true); setError("");
-    try {
-      const response = await fetch("/api/valuation/appointment", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: result.id, phone, slot: new Date(slot).toISOString() }) });
-      const data = await response.json() as { error?: string };
-      if (!response.ok) throw new Error(data.error || "Randevu talebi kaydedilemedi.");
-      setResult({ ...result, status: "appointment_requested", appointment: { slot: new Date(slot).toISOString(), requestedAt: new Date().toISOString() } });
-    } catch (cause) { setError(cause instanceof Error ? cause.message : "Bağlantı kurulamadı."); }
-    finally { setBooking(false); }
-  };
-  return <><Navbar /><main className="content-page"><section className="content-hero"><span>BAŞVURU KONTROLÜ</span><h1>Başvurunu doğrula.</h1><p>Başvuru numaran ve formda kullandığın telefonla süreci takip et. Teklif ve randevu bilgileri hazır oldukça burada görünür.</p></section><section className="status-panel"><form onSubmit={lookup}><label>Başvuru numarası<input inputMode="numeric" type="number" min="1" value={id} onChange={(event) => setId(event.target.value)} placeholder="Örn. 123" required /></label><label>Başvurudaki telefon<input inputMode="tel" type="tel" value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="05XX XXX XX XX" required /></label><button className="button button--primary" disabled={loading} type="submit"><Search size={16} />{loading ? "Sorgulanıyor..." : "Başvuruyu bul"}</button></form>{error && <p className="status-error" role="alert">{error}</p>}{result && <div className="status-result" role="status"><span>#{result.id} · {stages.find((item) => item.id === result.status)?.label}</span><h2>{result.vehicle}</h2><ol className="status-timeline">{stages.map((stage, index) => <li key={stage.id} data-active={index <= stages.findIndex((item) => item.id === result.status)}><b>{index + 1}</b>{stage.label}</li>)}</ol><p>Başvuruna {result.photoCount} fotoğraf eklenmiş.</p>{result.offer && <div className="status-offer"><strong>İnceleme sonrası teklif aralığı</strong><p>{new Intl.NumberFormat("tr-TR", { style: "currency", currency: "TRY", maximumFractionDigits: 0 }).format(result.offer.low)} – {new Intl.NumberFormat("tr-TR", { style: "currency", currency: "TRY", maximumFractionDigits: 0 }).format(result.offer.high)}</p><small>Kesin tutar araç durumu doğrulanınca netleşir.</small></div>}{result.status === "offered" && <div className="status-booking"><strong>Görüşme zamanı iste</strong><p>Size uygun bir gün ve saat seçin. Ekibimiz onaylayınca randevu kesinleşir.</p><input aria-label="Tercih edilen randevu zamanı" type="datetime-local" value={slot} onChange={(event) => setSlot(event.target.value)} /><button type="button" className="button button--primary" onClick={requestAppointment} disabled={!slot || booking}>{booking ? "Gönderiliyor..." : "Randevu talebi gönder"}</button></div>}{result.appointment && <p>Seçilen zaman: <strong>{new Date(result.appointment.slot).toLocaleString("tr-TR")}</strong> · {result.appointment.confirmedAt ? "Onaylandı" : "Onay bekliyor"}</p>}<a href={emailHref}>Eksik bilgi ilet <ArrowUpRight size={16} /></a></div>}<p>Numaranı kaybettiysen <Link href="/iletisim">bize ulaş</Link>.</p></section></main></>;
+type Appointment = { id?: number; slot: string; status?: string; confirmedAt?: string; canModify?: boolean };
+type Result = { id: number; vehicle: string; status: string; photoCount: number; offer?: { low: number; high: number } | null; appointment?: Appointment | null };
+const stages = [["received","Başvuru alındı"],["reviewing","İnceleniyor"],["offered","Teklif hazır"],["appointment_requested","Randevu talep edildi"],["appointment_confirmed","Randevu onaylandı"]] as const;
+export default function Page() {
+  const [id,setId]=useState(""),[phone,setPhone]=useState(""),[result,setResult]=useState<Result|null>(null),[error,setError]=useState(""),[loading,setLoading]=useState(false),[date,setDate]=useState(""),[slots,setSlots]=useState<string[]>([]),[slot,setSlot]=useState(""),[booking,setBooking]=useState(false),[changing,setChanging]=useState(false);
+  const lookup=async(event?:React.FormEvent)=>{event?.preventDefault();setLoading(true);setError("");try{const response=await fetch("/api/valuation/status",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id,phone})});const data=await response.json() as Result&{error?:string};if(!response.ok)throw new Error(data.error||"Başvuru sorgulanamadı.");setResult(data)}catch(cause){setError(cause instanceof Error?cause.message:"Bağlantı kurulamadı.")}finally{setLoading(false)}};
+  const loadSlots=async(value:string)=>{setDate(value);setSlot("");setSlots([]);if(!value)return;const response=await fetch(`/api/valuation/appointment?date=${value}`,{cache:"no-store"});const data=await response.json() as {slots?:string[];error?:string};if(!response.ok)return setError(data.error||"Saatler yüklenemedi.");setSlots(data.slots??[])};
+  const saveAppointment=async()=>{if(!result||!slot)return;setBooking(true);setError("");const isChange=changing&&result.appointment?.id;const response=await fetch("/api/valuation/appointment",{method:isChange?"PATCH":"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:result.id,phone,slot,...(isChange?{bookingId:result.appointment!.id}:{})})});const data=await response.json() as {error?:string};setBooking(false);if(!response.ok)return setError(data.error||"Randevu kaydedilemedi.");setChanging(false);setDate("");setSlots([]);await lookup()};
+  const cancel=async()=>{if(!result?.appointment?.id||!window.confirm("Randevu talebini iptal etmek istiyor musunuz?"))return;const response=await fetch("/api/valuation/appointment",{method:"DELETE",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:result.id,phone,bookingId:result.appointment.id})});const data=await response.json() as {error?:string};if(!response.ok)return setError(data.error||"Randevu iptal edilemedi.");await lookup()};
+  const chooseDate=<div className="status-booking"><label>Uygun gün<input type="date" min={new Date().toISOString().slice(0,10)} value={date} onChange={(e)=>void loadSlots(e.target.value)}/></label><div className="management-actions">{slots.map((item)=><button type="button" key={item} aria-pressed={slot===item} onClick={()=>setSlot(item)}>{new Date(item).toLocaleTimeString("tr-TR",{timeZone:"Europe/Istanbul",hour:"2-digit",minute:"2-digit"})}</button>)}</div>{date&&!slots.length&&<p>Bu gün için müsait saat bulunmuyor.</p>}<button className="button button--primary" type="button" disabled={!slot||booking} onClick={()=>void saveAppointment()}>{booking?"Kaydediliyor...":changing?"Yeni saati gönder":"Randevu talebi gönder"}</button></div>;
+  const stage=result?stages.findIndex(([key])=>key===result.status):-1;
+  return <><Navbar/><main className="content-page"><section className="content-hero"><span>BAŞVURU KONTROLÜ</span><h1>Başvurunu doğrula.</h1><p>Teklifini, randevunu ve süreç durumunu güvenli biçimde takip et.</p></section><section className="status-panel"><form onSubmit={lookup}><label>Başvuru numarası<input type="number" min="1" value={id} onChange={(e)=>setId(e.target.value)} required/></label><label>Telefon<input value={phone} onChange={(e)=>setPhone(e.target.value)} required/></label><button className="button button--primary" disabled={loading}><Search size={16}/>{loading?"Sorgulanıyor...":"Başvuruyu bul"}</button></form>{error&&<p className="status-error" role="alert">{error}</p>}{result&&<div className="status-result"><span>#{result.id} · {stages[stage]?.[1]}</span><h2>{result.vehicle}</h2><ol className="status-timeline">{stages.map(([key,label],index)=><li key={key} data-active={index<=stage}><b>{index+1}</b>{label}</li>)}</ol><p>{result.photoCount} fotoğraf kayıtlı.</p>{result.offer&&<div className="status-offer"><strong>Teklif aralığı</strong><p>{result.offer.low.toLocaleString("tr-TR")} – {result.offer.high.toLocaleString("tr-TR")} TL</p></div>}{result.status==="offered"&&!result.appointment&&chooseDate}{result.appointment&&<div className="status-booking"><strong>Randevu: {new Date(result.appointment.slot).toLocaleString("tr-TR",{timeZone:"Europe/Istanbul"})}</strong><p>Durum: {result.appointment.status==="confirmed"?"Onaylandı":result.appointment.status==="cancelled"?"İptal edildi":"Onay bekliyor"}</p>{result.appointment.canModify&&<div className="management-actions"><button type="button" onClick={()=>setChanging((value)=>!value)}>Randevuyu değiştir</button><button type="button" onClick={()=>void cancel()}>Randevuyu iptal et</button></div>}{changing&&chooseDate}</div>}</div>}<p>Numaranı kaybettiysen <Link href="/iletisim">bize ulaş</Link>.</p></section></main></>;
 }

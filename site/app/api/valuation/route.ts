@@ -1,8 +1,11 @@
 import { eq } from "drizzle-orm";
-import { valuationPhotos, valuationRequests } from "@/db/schema";
+import { consentRecords, valuationPhotos, valuationRequests } from "@/db/schema";
 import { createValuationRequest } from "@/services/valuationService";
 import type { ValuationRequest } from "@/types/valuation";
 import { selectedVariant } from "@/services/vehicleCatalogService";
+import { rateLimit, rateLimited, sameOrigin, sha256 } from "@/lib/security";
+import { enqueueNotification, notificationText } from "@/services/notificationService";
+import { sanitizeImage } from "@/services/imageSecurity";
 
 const maxPhotos = 15;
 const maxPhotoBytes = 4 * 1024 * 1024;
@@ -20,13 +23,16 @@ export async function POST(request: Request) {
   let bucket: R2Bucket | undefined;
   const storedKeys: string[] = [];
   try {
+    if (!sameOrigin(request)) return Response.json({ error: "Geçersiz istek kaynağı." }, { status: 403 });
+    const limited = await rateLimit(request, "valuation-create", 5, 3600);
+    if (!limited.allowed) return rateLimited(limited.retryAfter);
     if (Number(request.headers.get("content-length") || 0) > 62 * 1024 * 1024) return Response.json({ error: "Fotoğrafların toplam boyutu çok büyük." }, { status: 413 });
     if (!request.headers.get("content-type")?.includes("multipart/form-data")) return Response.json({ error: "Geçersiz başvuru biçimi." }, { status: 415 });
     const data = await request.formData();
     const raw = data.get("payload");
     if (typeof raw !== "string") return Response.json({ error: "Araç bilgileri eksik." }, { status: 400 });
     const payload = JSON.parse(raw) as Partial<ValuationRequest>;
-    if (!payload.year || !payload.brand?.trim() || !payload.model?.trim() || !Number.isFinite(Number(payload.mileage)) || Number(payload.mileage) < 0 || !payload.firstName?.trim() || !payload.lastName?.trim() || !payload.city?.trim() || !payload.saleTiming?.trim() || !/^0?5\d{9}$/.test((payload.phone ?? "").replace(/\s/g, "")) || (payload.email && !/^\S+@\S+\.\S+$/.test(payload.email)) || JSON.stringify(payload).length > 16_000) return Response.json({ error: "Zorunlu alanları kontrol edin." }, { status: 400 });
+    if (!payload.year || !payload.brand?.trim() || !payload.model?.trim() || !Number.isFinite(Number(payload.mileage)) || Number(payload.mileage) < 0 || !payload.firstName?.trim() || !payload.lastName?.trim() || !payload.city?.trim() || !payload.saleTiming?.trim() || payload.privacyNoticeAccepted !== true || !/^0?5\d{9}$/.test((payload.phone ?? "").replace(/\s/g, "")) || (payload.email && !/^\S+@\S+\.\S+$/.test(payload.email)) || JSON.stringify(payload).length > 16_000) return Response.json({ error: "Zorunlu alanları ve aydınlatma bildiriminizi kontrol edin." }, { status: 400 });
     if ((payload.catalogMatched !== undefined && typeof payload.catalogMatched !== "boolean") ||
         (payload.generation !== undefined && (typeof payload.generation !== "string" || payload.generation.length > 80)) ||
         (payload.version !== undefined && (typeof payload.version !== "string" || payload.version.length > 120)) ||
@@ -46,8 +52,9 @@ export async function POST(request: Request) {
       const file = photos[index];
       if (!(file instanceof File) || file.size === 0 || file.size > maxPhotoBytes) return Response.json({ error: "Fotoğraflar JPG, PNG veya WebP biçiminde ve en fazla 4 MB olmalıdır." }, { status: 400 });
       const area = data.get(`photoArea${index}`);
-      const bytes = await file.arrayBuffer();
-      if (typeof area !== "string" || !areas.has(area) || !validImage(new Uint8Array(bytes), file.type)) return Response.json({ error: "Bir fotoğrafın biçimi veya bölge bilgisi geçersiz." }, { status: 400 });
+      const original = await file.arrayBuffer();
+      if (typeof area !== "string" || !areas.has(area) || !validImage(new Uint8Array(original), file.type)) return Response.json({ error: "Bir fotoğrafın biçimi veya bölge bilgisi geçersiz." }, { status: 400 });
+      const bytes = sanitizeImage(original, file.type);
       prepared.push({ file, bytes, area });
     }
     if (prepared.length > 0) {
@@ -57,18 +64,25 @@ export async function POST(request: Request) {
     }
     const result = await createValuationRequest(payload as ValuationRequest);
     requestId = result.id;
+    const subjectRef = await sha256(`${payload.phone!.replace(/\s/g, "")}:${result.id}`);
+    const { getDb } = await import("@/db");
+    await getDb().insert(consentRecords).values([
+      { requestId, subjectRef, purpose: "valuation_processing_notice", granted: true, documentSlug: "aydinlatma-metni", documentVersion: "2026-10-26", source: "valuation_form" },
+      { requestId, subjectRef, purpose: "marketing", granted: payload.marketingConsent === true, documentSlug: "pazarlama-izni", documentVersion: "2026-10-26", source: "valuation_form" },
+    ]);
     for (const { file, bytes, area } of prepared) {
       const key = `valuation/${requestId}/${crypto.randomUUID()}`;
       storedKeys.push(key);
       await bucket!.put(key, bytes, { httpMetadata: { contentType: file.type } });
-      const { getDb } = await import("@/db");
       await getDb().insert(valuationPhotos).values({ requestId, objectKey: key, area, fileName: file.name.slice(0, 120), contentType: file.type });
     }
+    const message = notificationText.received(result.id);
+    try { await enqueueNotification({ type: "valuation_received", referenceType: "valuation", referenceId: result.id, dedupeKey: `valuation:${result.id}:received`, payload: { message }, channels: [{ channel: "in_app" }, ...(payload.email ? [{ channel: "email" as const, destination: payload.email }] : []), { channel: "sms", destination: payload.phone }] }); } catch (notificationError) { console.error("Notification enqueue failed", { requestId: result.id, error: notificationError instanceof Error ? notificationError.message : "unknown" }); }
     return Response.json({ id: requestId, photoCount: prepared.length }, { status: 201 });
   } catch (error) {
     console.error("Valuation request failed", error);
     for (const key of storedKeys) { try { await bucket?.delete(key); } catch (cleanupError) { console.error("Photo cleanup failed", cleanupError); } }
-    if (requestId) { try { const { getDb } = await import("@/db"); await getDb().delete(valuationPhotos).where(eq(valuationPhotos.requestId, requestId)); await getDb().delete(valuationRequests).where(eq(valuationRequests.id, requestId)); } catch (cleanupError) { console.error("Request cleanup failed", cleanupError); } }
+    if (requestId) { try { const { getDb } = await import("@/db"); await getDb().delete(valuationPhotos).where(eq(valuationPhotos.requestId, requestId)); await getDb().delete(consentRecords).where(eq(consentRecords.requestId, requestId)); await getDb().delete(valuationRequests).where(eq(valuationRequests.id, requestId)); } catch (cleanupError) { console.error("Request cleanup failed", cleanupError); } }
     return Response.json({ error: "Talep kaydedilemedi. Bilgileriniz ekranda duruyor; tekrar deneyin." }, { status: 500 });
   }
 }

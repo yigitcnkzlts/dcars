@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import type { AdvisorRequest } from "@/types/ai";
+import { rateLimit, rateLimited, sameOrigin } from "@/lib/security";
 
 const MODEL = "gpt-5.4-mini";
 const SYSTEM_PROMPT = `Sen D CARS'ın Türkçe araç danışmanısın. Marka, model, motor, paket, donanım, yakıt tüketimi, performans, konfor, bagaj, şehir içi kullanım, uzun yol ve aile kullanımı hakkında kısa ve somut cevaplar ver. İki veya daha fazla araç sorulursa ihtiyaçlara göre karşılaştır. Model yılı ve motor seçeneği sonucu değiştirecekse bunu belirt ve gerektiğinde kullanıcıya sor. Güncel fiyat, paket, teknik değer, güvenlik puanı veya kronik arıza bilgisi doğrulanmamışsa rakam ya da kesin hüküm uydurma; güncel fiyat ve paket bilgisinin doğrulanması gerektiğini söyle. Kesin arıza teşhisi veya satış teklifi verme.`;
@@ -14,6 +15,8 @@ function safeLog(error: unknown, key: string) {
 }
 
 export async function POST(request: Request) {
+  if (!sameOrigin(request)) return Response.json({ error: "Geçersiz istek kaynağı." }, { status: 403 });
+  const limited = await rateLimit(request, "ai-chat", 20, 3600); if (!limited.allowed) return rateLimited(limited.retryAfter);
   if (Number(request.headers.get("content-length") || 0) > 16_384) return Response.json({ error: "İstek çok uzun." }, { status: 413 });
 
   let payload: Partial<AdvisorRequest>;
@@ -26,7 +29,7 @@ export async function POST(request: Request) {
   const key = process.env.OPENAI_API_KEY;
   if (!key) {
     console.error("OPENAI_API_KEY is not configured");
-    return Response.json({ error: "OPENAI_API_KEY is not configured" }, { status: 500 });
+    return Response.json({ error: "Yapay zekâ servisi henüz yapılandırılmadı." }, { status: 503 });
   }
 
   const history = (Array.isArray(payload.history) ? payload.history : [])

@@ -1,24 +1,54 @@
-import { and, eq } from "drizzle-orm";
-import { valuationRequests } from "@/db/schema";
+import { and, eq, gte, inArray, lt } from "drizzle-orm";
+import { appointmentBookings, appointmentClosedDays, appointmentHistory, appointmentSettings, valuationRequests } from "@/db/schema";
+import { rateLimit, rateLimited, sameOrigin } from "@/lib/security";
+import { enqueueNotification, notificationText } from "@/services/notificationService";
+
+const timezone = "Europe/Istanbul";
+function localParts(date: Date) { const p = new Intl.DateTimeFormat("en-CA", { timeZone: timezone, year: "numeric", month: "2-digit", day: "2-digit", weekday: "short" }).formatToParts(date); const get = (t: string) => p.find((x) => x.type === t)?.value ?? ""; return { date: `${get("year")}-${get("month")}-${get("day")}`, weekday: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(get("weekday")) }; }
+
+export async function GET(request: Request) {
+  const limited = await rateLimit(request, "appointment-availability", 30, 60); if (!limited.allowed) return rateLimited(limited.retryAfter);
+  const date = new URL(request.url).searchParams.get("date") ?? ""; if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return Response.json({ error: "Geçerli tarih seçin." }, { status: 400 });
+  const noon = new Date(`${date}T12:00:00+03:00`), info = localParts(noon); if (info.date !== date || noon.getTime() < Date.now() - 12 * 3600_000 || noon.getTime() > Date.now() + 31 * 86400_000) return Response.json({ error: "Tarih aralık dışında." }, { status: 400 });
+  const { getDb } = await import("@/db"); const db = getDb();
+  const [closed] = await db.select().from(appointmentClosedDays).where(eq(appointmentClosedDays.date, date)).limit(1); if (closed) return Response.json({ date, timezone, slots: [], closed: true, reason: closed.reason });
+  const [setting] = await db.select().from(appointmentSettings).where(and(eq(appointmentSettings.weekday, info.weekday), eq(appointmentSettings.active, true))).limit(1); if (!setting) return Response.json({ date, timezone, slots: [], closed: true });
+  const bookings = await db.select({ startAt: appointmentBookings.startAt }).from(appointmentBookings).where(and(gte(appointmentBookings.startAt, new Date(`${date}T00:00:00+03:00`).toISOString()), lt(appointmentBookings.startAt, new Date(`${date}T23:59:59+03:00`).toISOString()), inArray(appointmentBookings.status, ["requested", "confirmed"])));
+  const occupied = new Set(bookings.map((item) => item.startAt)), slots: string[] = []; const [sh, sm] = setting.startTime.split(":").map(Number), [eh, em] = setting.endTime.split(":").map(Number);
+  for (let minute = sh * 60 + sm; minute + setting.slotMinutes <= eh * 60 + em; minute += setting.slotMinutes) { const hh = String(Math.floor(minute / 60)).padStart(2, "0"), mm = String(minute % 60).padStart(2, "0"), iso = new Date(`${date}T${hh}:${mm}:00+03:00`).toISOString(); if (new Date(iso).getTime() > Date.now() + 3600_000 && !occupied.has(iso)) slots.push(iso); }
+  return Response.json({ date, timezone, slots, closed: false }, { headers: { "Cache-Control": "no-store" } });
+}
 
 export async function POST(request: Request) {
+  if (!sameOrigin(request)) return Response.json({ error: "Geçersiz istek kaynağı." }, { status: 403 }); const limited = await rateLimit(request, "appointment-create", 6, 3600); if (!limited.allowed) return rateLimited(limited.retryAfter);
   try {
-    if (Number(request.headers.get("content-length") || 0) > 2048) return Response.json({ error: "İstek çok uzun." }, { status: 413 });
-    const input = await request.json() as { id?: number; phone?: string; slot?: string };
-    const id = Number(input.id);
-    const phone = String(input.phone ?? "").replace(/\s/g, "");
-    const slot = String(input.slot ?? "");
-    const date = new Date(slot);
-    if (!Number.isSafeInteger(id) || id < 1 || !/^0?5\d{9}$/.test(phone) || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(slot) || Number.isNaN(date.getTime()) || date.getTime() < Date.now() + 60 * 60 * 1000 || date.getTime() > Date.now() + 30 * 86400_000) return Response.json({ error: "Geçerli bir gün ve saat seçin." }, { status: 400 });
-    const { getDb } = await import("@/db");
-    const db = getDb();
-    const [record] = await db.select().from(valuationRequests).where(and(eq(valuationRequests.id, id), eq(valuationRequests.phone, phone))).limit(1);
-    if (!record) return Response.json({ error: "Başvuru bulunamadı." }, { status: 404 });
-    if (!(["offered", "appointment_requested"].includes(record.status))) return Response.json({ error: "Randevu talebi teklif hazır olduğunda açılır." }, { status: 409 });
-    const details = record.details as Record<string, unknown>;
-    await db.update(valuationRequests).set({ status: "appointment_requested", details: { ...details, appointment: { slot, requestedAt: new Date().toISOString() } } }).where(eq(valuationRequests.id, id));
-    return Response.json({ status: "appointment_requested", slot });
-  } catch {
-    return Response.json({ error: "Randevu talebi kaydedilemedi." }, { status: 503 });
-  }
+    const input = await request.json() as { id?: number; phone?: string; slot?: string }; const id = Number(input.id), phone = String(input.phone ?? "").replace(/\s/g, ""), date = new Date(String(input.slot ?? ""));
+    if (!Number.isSafeInteger(id) || id < 1 || !/^0?5\d{9}$/.test(phone) || Number.isNaN(date.getTime()) || date.getTime() < Date.now() + 3600_000 || date.getTime() > Date.now() + 31 * 86400_000) return Response.json({ error: "Geçerli bir gün ve saat seçin." }, { status: 400 });
+    const availableResponse = await GET(new Request(`${new URL(request.url).origin}/api/valuation/appointment?date=${localParts(date).date}`, { headers: request.headers })); const available = await availableResponse.json() as { slots?: string[] }; if (!availableResponse.ok || !available.slots?.includes(date.toISOString())) return Response.json({ error: "Bu saat artık müsait değil." }, { status: 409 });
+    const { getDb } = await import("@/db"); const db = getDb(); const [record] = await db.select().from(valuationRequests).where(and(eq(valuationRequests.id, id), eq(valuationRequests.phone, phone))).limit(1);
+    if (!record) return Response.json({ error: "Başvuru bulunamadı." }, { status: 404 }); if (record.status !== "offered") return Response.json({ error: "Randevu talebi teklif hazır olduğunda açılır." }, { status: 409 });
+    let booking: { id: number }; try { [booking] = await db.insert(appointmentBookings).values({ requestId: id, startAt: date.toISOString(), endAt: new Date(date.getTime() + 3600_000).toISOString() }).returning({ id: appointmentBookings.id }); } catch { return Response.json({ error: "Bu saat başka bir randevu tarafından alındı." }, { status: 409 }); }
+    await db.insert(appointmentHistory).values({ bookingId: booking.id, toStatus: "requested", actorType: "customer" }); await db.update(valuationRequests).set({ status: "appointment_requested" }).where(eq(valuationRequests.id, id));
+    const message = notificationText.appointment(id, date.toLocaleString("tr-TR", { timeZone: timezone })); try { await enqueueNotification({ type: "appointment_requested", referenceType: "appointment", referenceId: booking.id, dedupeKey: `appointment:${booking.id}:requested`, payload: { message, slot: date.toISOString() }, channels: [{ channel: "in_app" }, { channel: "sms", destination: phone }] }); } catch { /* Booking success is independent from provider availability. */ }
+    return Response.json({ status: "appointment_requested", slot: date.toISOString() }, { status: 201 });
+  } catch { return Response.json({ error: "Randevu talebi kaydedilemedi." }, { status: 503 }); }
+}
+
+export async function PATCH(request: Request) {
+  if (!sameOrigin(request)) return Response.json({ error: "Geçersiz istek kaynağı." }, { status: 403 }); const limited = await rateLimit(request, "appointment-change", 5, 3600); if (!limited.allowed) return rateLimited(limited.retryAfter);
+  const input = await request.json().catch(() => ({})) as { id?: number; phone?: string; bookingId?: number; slot?: string }; const requestId = Number(input.id), bookingId = Number(input.bookingId), phone = String(input.phone ?? "").replace(/\s/g, ""), date = new Date(String(input.slot ?? ""));
+  if (!Number.isSafeInteger(requestId) || !Number.isSafeInteger(bookingId) || !/^0?5\d{9}$/.test(phone) || Number.isNaN(date.getTime()) || date.getTime() < Date.now() + 24 * 3600_000) return Response.json({ error: "Randevu en az 24 saat sonrasına değiştirilebilir." }, { status: 400 });
+  const availableResponse = await GET(new Request(`${new URL(request.url).origin}/api/valuation/appointment?date=${localParts(date).date}`, { headers: request.headers })); const available = await availableResponse.json() as { slots?: string[] }; if (!availableResponse.ok || !available.slots?.includes(date.toISOString())) return Response.json({ error: "Bu saat artık müsait değil." }, { status: 409 });
+  const { getDb } = await import("@/db"); const db = getDb(); const [customer] = await db.select().from(valuationRequests).where(and(eq(valuationRequests.id, requestId), eq(valuationRequests.phone, phone))).limit(1); const [booking] = await db.select().from(appointmentBookings).where(and(eq(appointmentBookings.id, bookingId), eq(appointmentBookings.requestId, requestId))).limit(1); if (!customer || !booking) return Response.json({ error: "Randevu bulunamadı." }, { status: 404 }); if (!["requested", "confirmed"].includes(booking.status) || new Date(booking.startAt).getTime() < Date.now() + 24 * 3600_000) return Response.json({ error: "Bu randevu artık değiştirilemez." }, { status: 409 });
+  try { await db.update(appointmentBookings).set({ startAt: date.toISOString(), endAt: new Date(date.getTime() + 3600_000).toISOString(), status: "requested", updatedAt: new Date().toISOString() }).where(eq(appointmentBookings.id, bookingId)); } catch { return Response.json({ error: "Bu saat başka bir randevu tarafından alındı." }, { status: 409 }); }
+  await db.insert(appointmentHistory).values({ bookingId, fromStatus: booking.status, toStatus: "requested", actorType: "customer", note: `Önceki saat: ${booking.startAt}` }); const message = `D CARS #${requestId} başvurunuzun randevusu ${date.toLocaleString("tr-TR", { timeZone: timezone })} olarak değiştirildi ve yeniden onaya gönderildi.`; try { await enqueueNotification({ type: "appointment_rescheduled", referenceType: "appointment", referenceId: bookingId, dedupeKey: `appointment:${bookingId}:rescheduled:${date.toISOString()}`, payload: { message, previousSlot: booking.startAt, slot: date.toISOString() }, channels: [{ channel: "in_app" }, { channel: "sms", destination: phone }] }); } catch { /* Booking remains changed. */ }
+  return Response.json({ id: bookingId, status: "requested", slot: date.toISOString() });
+}
+
+export async function DELETE(request: Request) {
+  if (!sameOrigin(request)) return Response.json({ error: "Geçersiz istek kaynağı." }, { status: 403 }); const limited = await rateLimit(request, "appointment-cancel", 5, 3600); if (!limited.allowed) return rateLimited(limited.retryAfter); const input = await request.json().catch(() => ({})) as { id?: number; phone?: string; bookingId?: number }; const requestId = Number(input.id), bookingId = Number(input.bookingId), phone = String(input.phone ?? "").replace(/\s/g, "");
+  const { getDb } = await import("@/db"); const db = getDb(); const [customer] = await db.select().from(valuationRequests).where(and(eq(valuationRequests.id, requestId), eq(valuationRequests.phone, phone))).limit(1); const [booking] = await db.select().from(appointmentBookings).where(and(eq(appointmentBookings.id, bookingId), eq(appointmentBookings.requestId, requestId))).limit(1); if (!customer || !booking) return Response.json({ error: "Randevu bulunamadı." }, { status: 404 }); if (!["requested", "confirmed"].includes(booking.status) || new Date(booking.startAt).getTime() < Date.now() + 24 * 3600_000) return Response.json({ error: "Randevu yalnızca başlangıçtan 24 saat öncesine kadar iptal edilebilir." }, { status: 409 });
+  const now = new Date().toISOString(); await db.update(appointmentBookings).set({ status: "cancelled", cancelledAt: now, updatedAt: now }).where(eq(appointmentBookings.id, bookingId)); await db.insert(appointmentHistory).values({ bookingId, fromStatus: booking.status, toStatus: "cancelled", actorType: "customer" }); const message = `D CARS #${requestId} başvurunuzun randevusu iptal edilmiştir.`; try { await enqueueNotification({ type: "appointment_cancelled", referenceType: "appointment", referenceId: bookingId, dedupeKey: `appointment:${bookingId}:cancelled:${now}`, payload: { message }, channels: [{ channel: "in_app" }, { channel: "sms", destination: phone }] }); } catch { /* Cancellation remains authoritative. */ }
+  await db.update(valuationRequests).set({ status: "offered" }).where(eq(valuationRequests.id, requestId));
+  return Response.json({ id: bookingId, status: "cancelled" });
 }

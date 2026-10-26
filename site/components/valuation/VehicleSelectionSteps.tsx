@@ -7,6 +7,19 @@ import { ModelSelect } from "./ModelSelect";
 import { selectedVariant, variantsFor, type VehicleSelection } from "@/services/vehicleCatalogService";
 import { getPackageSuggestions } from "@/services/vehiclePackageService";
 import type { VehicleVariant } from "@/data/vehicle-catalog/variants";
+import { transmissionMatches } from "@/services/vehicleOptionNormalization";
+
+type TechnicalVariant = {
+  id: number;
+  engine: string;
+  fuelType: string;
+  transmission: string;
+  powerHp?: number;
+  generation?: string;
+};
+type OtoApiResult = { variants: TechnicalVariant[]; source: "otoapi" | "disabled"; message?: string; packageDataVerified?: false; retryAfter?: number };
+const OTOAPI_CLIENT_CACHE_MS = 5 * 60 * 1000;
+const otoApiClientCache = new Map<string, { promise: Promise<OtoApiResult>; expiresAt: number }>();
 
 type Props = {
   phase: number;
@@ -38,14 +51,59 @@ export function VehicleSelectionSteps({ phase, selection, color, onColor, onSele
   const [query, setQuery] = useState("");
   const [manualVersionOpen, setManualVersionOpen] = useState(false);
   const [manualVersion, setManualVersion] = useState("");
+  const [manualEngineOpen, setManualEngineOpen] = useState(false);
+  const [manualEngine, setManualEngine] = useState("");
 
   // ── CSV catalog options (fetched from /api/catalog-options when no verified variants) ──
   const [csvTransmissions, setCsvTransmissions] = useState<string[]>([]);
   const [csvFuels, setCsvFuels] = useState<string[]>([]);
   const [csvEngines, setCsvEngines] = useState<string[]>([]);
+  const [technicalVariants, setTechnicalVariants] = useState<TechnicalVariant[]>([]);
+  const [otoApiLoading, setOtoApiLoading] = useState(false);
+  const [otoApiMessage, setOtoApiMessage] = useState("");
 
   const variants = variantsFor(selection.year ?? 0, selection.brand ?? "", selection.model ?? "");
   const hasVerified = variants.length > 0;
+
+  // OtoAPI is queried once per year/brand/model and only when the verified TR catalog has no match.
+  // Its records are technical variants, never asserted to be commercial trim packages.
+  useEffect(() => {
+    if (hasVerified || !selection.year || !selection.brand || !selection.model) {
+      return;
+    }
+    let active = true;
+    const key = `${selection.year}|${selection.brand}|${selection.model}`;
+    const params = new URLSearchParams({ year: String(selection.year), brand: selection.brand, model: selection.model });
+    const cached = otoApiClientCache.get(key);
+    let pending: Promise<OtoApiResult>;
+    if (cached && cached.expiresAt > Date.now()) {
+      pending = cached.promise;
+    } else {
+      pending = fetch(`/api/otoapi-variants?${params}`).then(async (response) => {
+        const result = await response.json() as OtoApiResult;
+        if (!response.ok && response.status !== 429) throw new Error(result.message || "Harici teknik katalog yüklenemedi.");
+        if (response.status === 429) {
+          const cooldownMs = (result.retryAfter ?? 15 * 60) * 1000;
+          const entry = otoApiClientCache.get(key);
+          if (entry) entry.expiresAt = Date.now() + cooldownMs;
+        }
+        return result;
+      });
+      otoApiClientCache.set(key, { promise: pending, expiresAt: Date.now() + OTOAPI_CLIENT_CACHE_MS });
+    }
+    queueMicrotask(() => { if (active) setOtoApiLoading(true); });
+    pending.then((result) => {
+      if (!active) return;
+      setTechnicalVariants(result.variants);
+      setOtoApiMessage(result.message ?? "");
+    }).catch((cause) => {
+      otoApiClientCache.delete(key);
+      if (!active) return;
+      setTechnicalVariants([]);
+      setOtoApiMessage(cause instanceof Error ? cause.message : "Harici teknik katalog yüklenemedi.");
+    }).finally(() => { if (active) setOtoApiLoading(false); });
+    return () => { active = false; };
+  }, [hasVerified, selection.brand, selection.model, selection.year]);
 
   // Fetch CSV transmissions when brand/model/year change and no verified variants
   useEffect(() => {
@@ -60,8 +118,9 @@ export function VehicleSelectionSteps({ phase, selection, color, onColor, onSele
     if (hasVerified || !selection.brand || !selection.model) return;
     const params = new URLSearchParams({ brand: selection.brand, model: selection.model, field: "fuelType" });
     if (selection.year) params.set("year", String(selection.year));
+    if (selection.transmission) params.set("transmission", selection.transmission);
     fetch(`/api/catalog-options?${params}`).then((r) => r.json()).then((data) => setCsvFuels(data as string[])).catch(() => setCsvFuels([]));
-  }, [hasVerified, selection.brand, selection.model, selection.year]);
+  }, [hasVerified, selection.brand, selection.model, selection.year, selection.transmission]);
 
   // Fetch CSV engines when fuelType or transmission changes
   useEffect(() => {
@@ -74,21 +133,31 @@ export function VehicleSelectionSteps({ phase, selection, color, onColor, onSele
   }, [hasVerified, selection.brand, selection.model, selection.year, selection.fuelType, selection.transmission]);
 
   // ── Cascading options ──────────────────────────────────────────────────────
+  const remoteTransmissions = [...new Set(technicalVariants.map((item) => item.transmission).filter((item) => item !== "Belirtilmemiş"))];
   const transmissions = hasVerified
     ? [...new Set(variants.map((item) => item.transmission))]
-    : csvTransmissions.length ? csvTransmissions : ["Otomatik", "Manuel", "Yarı otomatik"];
+    : [...new Set([...csvTransmissions, ...remoteTransmissions])].length
+      ? [...new Set([...csvTransmissions, ...remoteTransmissions])]
+      : ["Otomatik", "Manuel", "Yarı otomatik"];
 
   const byTransmission = variants.filter((item) => item.transmission === selection.transmission);
 
+  const remoteByTransmission = technicalVariants.filter((item) => transmissionMatches(item.transmission, selection.transmission));
+  const remoteFuels = [...new Set(remoteByTransmission.map((item) => item.fuelType).filter((item) => item !== "Belirtilmemiş"))];
   const fuels = hasVerified
     ? [...new Set(byTransmission.map((item) => item.fuelType))]
-    : csvFuels.length ? csvFuels : ["Benzin", "Dizel", "Hibrit", "Elektrik", "LPG"];
+    : [...new Set([...csvFuels, ...remoteFuels])].length
+      ? [...new Set([...csvFuels, ...remoteFuels])]
+      : ["Benzin", "Dizel", "Hibrit", "Elektrik", "LPG"];
 
   const byFuel = byTransmission.filter((item) => item.fuelType === selection.fuelType);
 
+  const remoteEngines = technicalVariants
+    .filter((item) => transmissionMatches(item.transmission, selection.transmission) && item.fuelType === selection.fuelType)
+    .map((item) => item.engine);
   const engines = hasVerified
     ? [...new Set(byFuel.map((item) => item.engine))]
-    : csvEngines;
+    : [...new Set([...csvEngines, ...remoteEngines])];
   const matches = (text: string) => text.toLocaleLowerCase("tr-TR").includes(query.trim().toLocaleLowerCase("tr-TR"));
   const versions = byFuel.filter((item) => (!selection.engine || item.engine === selection.engine) && matches(versionLabel(item)));
   const packages = getPackageSuggestions(selection.brand ?? "", selection.model ?? "");
@@ -140,23 +209,35 @@ export function VehicleSelectionSteps({ phase, selection, color, onColor, onSele
         {phase === 2 && <ModelSelect grid brand={selection.brand ?? ""} value={selection.model ?? ""} onChange={(value) => onSelect("model", value)} />}
         {(phase === 3 || phase === 4) && (
           <>
+            {otoApiLoading && <p className="selection-notice" role="status">Harici teknik araç bilgileri yükleniyor…</p>}
+            {otoApiMessage && <p className="selection-notice">{otoApiMessage} Manuel giriş ve mevcut katalog kullanılabilir.</p>}
             <div className="vehicle-selection__cards">{(phase === 3 ? transmissions : fuels).map((value) => <Choice key={value} label={value} selected={(phase === 3 ? selection.transmission : selection.fuelType) === value} onClick={() => onSelect(phase === 3 ? "transmission" : "fuelType", value)} />)}</div>
           </>
         )}
         {phase === 5 && (
           <>
             <p className="selection-source">Önce motoru, ardından uyumlu versiyon / donanımı seçin.</p>
+            {otoApiLoading && <p className="selection-notice" role="status">Harici teknik araç bilgileri yükleniyor…</p>}
+            {!hasVerified && technicalVariants.length > 0 && <p className="selection-notice"><Check size={14} /> OtoAPI teknik varyantları gösteriliyor. Bunlar Türkiye donanım paketi olarak doğrulanmış değildir.</p>}
+            {otoApiMessage && <p className="selection-notice">{otoApiMessage} Manuel giriş ve mevcut katalog kullanılabilir.</p>}
             <div className="vehicle-selection__cards">{engines.filter(matches).map((value) => <Choice key={value} label={value} selected={selection.engine === value} onClick={() => onSelect("engine", value)} />)}</div>
             {engines.length > 0 && !engines.filter(matches).length && <p className="vehicle-selection__empty">Arama ile eşleşen motor bulunamadı. Aramayı temizleyin.</p>}
+            {!selection.engine && !otoApiLoading && engines.length === 0 && (
+              <>
+                <button type="button" className="vehicle-selection__unknown" aria-expanded={manualEngineOpen} onClick={() => setManualEngineOpen((open) => !open)}>Motorumu bulamadım</button>
+                {manualEngineOpen && <div className="manual-version"><label htmlFor="manual-engine">Motor / teknik varyant</label><div><input id="manual-engine" value={manualEngine} onChange={(event) => setManualEngine(event.target.value)} placeholder="Örn. 1.5 TSI 150 PS" /><button type="button" disabled={!manualEngine.trim()} onClick={() => onSelect("engine", manualEngine.trim())}>Motoru kullan</button></div></div>}
+              </>
+            )}
             {selection.engine && (
               <>
                 {showVerifiedVersions && <p className="selection-source"><Check size={14} /> Uyumlu doğrulanmış versiyon / donanımlar</p>}
-                {!showVerifiedVersions && showPackageSuggestions && <p className="selection-notice">Seçili kombinasyon için doğrulanmış paket bulunamadı. Model ailesine ait paket önerileri gösteriliyor.</p>}
-                {!showVerifiedVersions && !showPackageSuggestions && <p className="selection-notice">Bu motor kombinasyonu için doğrulanmış veya önerilen paket bulunamadı. Aşağıdan kendiniz ekleyebilirsiniz.</p>}
+                {!showVerifiedVersions && showPackageSuggestions && <p className="selection-notice">Model ailesi için {filteredPackages.join(", ")} adları öneri listesinde bulunuyor; ancak seçilen yıl ve motorla eşleşmeleri doğrulanmadığı için kesin donanım seçeneği olarak sunulmuyor.</p>}
+                {!showVerifiedVersions && technicalVariants.length > 0 && <p className="selection-notice">Teknik varyant seçildi. OtoAPI ticari donanım paketini doğrulamadığı için paketinizi aşağıdan manuel girin.</p>}
+                {!showVerifiedVersions && !showPackageSuggestions && !technicalVariants.length && <p className="selection-notice">Bu motor kombinasyonu için doğrulanmış veya önerilen paket bulunamadı. Aşağıdan kendiniz ekleyebilirsiniz.</p>}
                 <div className="vehicle-selection__cards vehicle-selection__cards--versions">
                   {showVerifiedVersions
                     ? versions.map((item) => <Choice key={[item.generation, item.engine, item.version, item.trim, item.bodyType].join("|")} label={versionLabel(item)} detail={`${item.fuelType} · ${item.transmission}`} selected={matched === item} onClick={() => onVariant(item)} />)
-                    : filteredPackages.map((item) => <Choice key={item} label={item} detail="Paket önerisi" selected={selection.trim === item} onClick={() => onFallbackVersion(selection.transmission!, item)} />)}
+                    : null}
                 </div>
                 {showManualAlways && <>
                   <button type="button" className="vehicle-selection__unknown" aria-expanded={manualVersionOpen} onClick={() => setManualVersionOpen((open) => !open)}>Paketimi bulamadım</button>

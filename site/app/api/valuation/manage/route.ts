@@ -1,10 +1,10 @@
 import { desc, eq, inArray } from "drizzle-orm";
-import { valuationPhotos, valuationRequests } from "@/db/schema";
-
-function authorized(request: Request) { const secret = process.env.VALUATION_ADMIN_TOKEN; return Boolean(secret && request.headers.get("authorization") === `Bearer ${secret}`); }
+import { appointmentBookings, appointmentHistory, valuationPhotos, valuationRequests } from "@/db/schema";
+import { audit, requireAdmin, sameOrigin } from "@/lib/security";
+import { enqueueNotification, notificationText } from "@/services/notificationService";
 
 export async function GET(request: Request) {
-  if (!authorized(request)) return Response.json({ error: "Yetkisiz işlem." }, { status: 401 });
+  const identity = await requireAdmin(request); if (!identity) return Response.json({ error: "Oturum açmanız gerekiyor." }, { status: 401 });
   try {
     const { getDb } = await import("@/db");
     const db = getDb();
@@ -16,7 +16,8 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  if (!authorized(request)) return Response.json({ error: "Yetkisiz işlem." }, { status: 401 });
+  if (!sameOrigin(request)) return Response.json({ error: "Geçersiz istek kaynağı." }, { status: 403 });
+  const identity = await requireAdmin(request); if (!identity) return Response.json({ error: "Oturum açmanız gerekiyor." }, { status: 401 });
   try {
     if (Number(request.headers.get("content-length") || 0) > 2048) return Response.json({ error: "İstek çok uzun." }, { status: 413 });
     const input = await request.json() as { id?: number; status?: string; offerLow?: number; offerHigh?: number };
@@ -32,9 +33,18 @@ export async function POST(request: Request) {
       if (!Number.isSafeInteger(low) || !Number.isSafeInteger(high) || low < 1 || high < low) return Response.json({ error: "Geçerli teklif aralığı girin." }, { status: 400 });
       details.offer = { low, high, updatedAt: new Date().toISOString() };
     }
-    if (input.status === "appointment_confirmed" && (record.status !== "appointment_requested" || !details.appointment)) return Response.json({ error: "Önce randevu talebi alınmalı." }, { status: 409 });
-    if (input.status === "appointment_confirmed") details.appointment = { ...(details.appointment as object), confirmedAt: new Date().toISOString() };
+    let appointmentSlot: string | undefined;
+    if (input.status === "appointment_confirmed") {
+      const [booking] = await db.select().from(appointmentBookings).where(eq(appointmentBookings.requestId, id)).orderBy(desc(appointmentBookings.id)).limit(1);
+      if (record.status !== "appointment_requested" || !booking) return Response.json({ error: "Önce randevu talebi alınmalı." }, { status: 409 });
+      appointmentSlot = booking.startAt;
+      await db.update(appointmentBookings).set({ status: "confirmed", updatedAt: new Date().toISOString() }).where(eq(appointmentBookings.id, booking.id));
+      await db.insert(appointmentHistory).values({ bookingId: booking.id, fromStatus: booking.status, toStatus: "confirmed", actorType: "admin" });
+    }
     await db.update(valuationRequests).set({ status: input.status, details }).where(eq(valuationRequests.id, id));
+    await audit(identity, `valuation.${input.status}`, "valuation", String(id), { previousStatus: record.status });
+    const message = input.status === "reviewing" ? notificationText.reviewing(id) : input.status === "offered" ? notificationText.offered(id) : notificationText.confirmed(id, new Date(appointmentSlot!).toLocaleString("tr-TR", { timeZone: "Europe/Istanbul" }));
+    try { await enqueueNotification({ type: `valuation_${input.status}`, referenceType: "valuation", referenceId: id, dedupeKey: `valuation:${id}:${input.status}`, payload: { message }, channels: [{ channel: "in_app" }, ...(record.email ? [{ channel: "email" as const, destination: record.email }] : []), { channel: "sms", destination: record.phone }] }); } catch { /* The state change remains valid and can be retried by operations. */ }
     return Response.json({ id, status: input.status });
   } catch {
     return Response.json({ error: "Başvuru güncellenemedi." }, { status: 503 });

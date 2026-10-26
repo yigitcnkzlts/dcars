@@ -45,6 +45,7 @@ export function DetailedValuationFlow({ onVehicleChange }: { onVehicleChange?: (
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [contact, setContact] = useState<ContactState>({ firstName: "", lastName: "", phone: "", email: "", city: "", plate: "", saleTiming: "", customerNotes: "", callRequested: false, preferredContactMethod: "Telefon", preferredContactTime: "" });
   const [agreed, setAgreed] = useState(false);
+  const [marketingConsent, setMarketingConsent] = useState(false);
   const [error, setError] = useState("");
   const [sending, setSending] = useState(false);
   const [draftSaving, setDraftSaving] = useState(false);
@@ -122,7 +123,7 @@ export function DetailedValuationFlow({ onVehicleChange }: { onVehicleChange?: (
     const incoming = Array.from(files);
     if (photos.length + incoming.length > 15) { setError("En fazla 15 fotoğraf ekleyebilirsiniz."); return; }
     if (incoming.some((file) => !["image/jpeg", "image/png", "image/webp"].includes(file.type) || file.size === 0 || file.size > 4 * 1024 * 1024)) { setError("JPG, PNG veya WebP biçiminde, 4 MB altındaki fotoğrafları seçin."); return; }
-    setPhotos((current) => { const used = new Set(current.map((photo) => photo.area)); return [...current, ...incoming.map((file) => { const url = URL.createObjectURL(file); photoUrls.current.push(url); const suggested = photoAreas.find((area) => area !== "Diğer" && !used.has(area)) ?? "Diğer"; used.add(suggested); return { file, url, area: suggested }; })]; });
+    setPhotos((current) => { const used = new Set(current.map((photo) => photo.area)); return [...current, ...incoming.map((file) => { const url = URL.createObjectURL(file); photoUrls.current.push(url); const suggested = photoAreas.find((area) => area !== "Ek fotoğraflar" && !used.has(area)) ?? "Ek fotoğraflar"; used.add(suggested); return { file, url, area: suggested }; })]; });
     setError("");
   };
   const removePhoto = (url: string) => { URL.revokeObjectURL(url); photoUrls.current = photoUrls.current.filter((item) => item !== url); setPhotos((current) => current.filter((item) => item.url !== url)); };
@@ -158,6 +159,7 @@ export function DetailedValuationFlow({ onVehicleChange }: { onVehicleChange?: (
       firstName: contact.firstName.trim(), lastName: contact.lastName.trim(), phone, email: contact.email.trim(),
       preferredContactMethod: contact.preferredContactMethod, preferredContactTime: contact.preferredContactTime, city: contact.city.trim(), plate: contact.plate.trim(), saleTiming: contact.saleTiming, callRequested: contact.callRequested,
       customerNotes: contact.customerNotes.trim(),
+      privacyNoticeAccepted: agreed, marketingConsent,
     };
     try {
       const body = new FormData(); body.set("payload", JSON.stringify(payload));
@@ -328,7 +330,7 @@ export function DetailedValuationFlow({ onVehicleChange }: { onVehicleChange?: (
         {step === 2 && (
           <div className="detailed-stage">
             <StageTitle title="Kişisel bilgiler" text="Uzman değerlendirmesi tamamlandığında size ulaşabilmemiz için iletişim bilgilerinizi girin." />
-            <ContactForm contact={contact} setContact={setContact} agreed={agreed} setAgreed={setAgreed} />
+            <ContactForm contact={contact} setContact={setContact} agreed={agreed} setAgreed={setAgreed} marketingConsent={marketingConsent} setMarketingConsent={setMarketingConsent} />
           </div>
         )}
         {step === 3 && (
@@ -388,7 +390,7 @@ function ChoiceField({ label, name, value, options, onChange }: { label: string;
   return <fieldset className="choice-pills"><legend>{label}</legend>{options.map((option) => <label key={option}><input type="radio" name={name} checked={value === option} onChange={() => onChange(option)} />{option}</label>)}</fieldset>;
 }
 
-function ContactForm({ contact, setContact, agreed, setAgreed }: { contact: ContactState; setContact: Dispatch<SetStateAction<ContactState>>; agreed: boolean; setAgreed: Dispatch<SetStateAction<boolean>> }) {
+function ContactForm({ contact, setContact, agreed, setAgreed, marketingConsent, setMarketingConsent }: { contact: ContactState; setContact: Dispatch<SetStateAction<ContactState>>; agreed: boolean; setAgreed: Dispatch<SetStateAction<boolean>>; marketingConsent: boolean; setMarketingConsent: Dispatch<SetStateAction<boolean>> }) {
   return <>
     <div className="detailed-contact">
       <ContactField label="Ad *" value={contact.firstName} onChange={(value) => setContact((current) => ({ ...current, firstName: value }))} placeholder="Adınız" />
@@ -404,5 +406,6 @@ function ContactForm({ contact, setContact, agreed, setAgreed }: { contact: Cont
     </div>
     <label className="valuation-field customer-notes"><span>Ek açıklama</span><textarea value={contact.customerNotes} maxLength={1200} onChange={(event) => setContact((current) => ({ ...current, customerNotes: event.target.value }))} placeholder="Başvurunuzla ilgili eklemek istediğiniz bir bilgi varsa yazın." /></label>
     <label className="offer-consent detailed-consent"><input type="checkbox" checked={agreed} onChange={(event) => setAgreed(event.target.checked)} /><span><Link href="/aydinlatma-metni" target="_blank" rel="noopener noreferrer">Aydınlatma metnini</Link> okudum; bilgilerimin teklif başvurum için kullanılacağını biliyorum.</span></label>
+    <label className="offer-consent detailed-consent"><input type="checkbox" checked={marketingConsent} onChange={(event) => setMarketingConsent(event.target.checked)} /><span>Kampanya ve duyurular için ileti almak istiyorum (isteğe bağlı).</span></label>
   </>;
 }

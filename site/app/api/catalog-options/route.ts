@@ -51,9 +51,9 @@ export function GET(req: NextRequest) {
   }
 
   if (field === "transmission") {
-    options = getCsvTransmissions(brand, model, year);
+    options = getCsvTransmissions(brand, model, year, fuelType);
   } else if (field === "fuelType") {
-    options = getCsvFuelTypes(brand, model, year);
+    options = getCsvFuelTypes(brand, model, year, transmission);
   } else if (field === "engine") {
     options = getCsvEngineLabels(brand, model, year, fuelType, transmission);
   } else {
