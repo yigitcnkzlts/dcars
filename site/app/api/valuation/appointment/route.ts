@@ -6,7 +6,7 @@ import { enqueueNotification, notificationText } from "@/services/notificationSe
 const timezone = "Europe/Istanbul";
 function localParts(date: Date) { const p = new Intl.DateTimeFormat("en-CA", { timeZone: timezone, year: "numeric", month: "2-digit", day: "2-digit", weekday: "short" }).formatToParts(date); const get = (t: string) => p.find((x) => x.type === t)?.value ?? ""; return { date: `${get("year")}-${get("month")}-${get("day")}`, weekday: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(get("weekday")) }; }
 
-export async function GET(request: Request) {
+async function getAvailability(request: Request) {
   const limited = await rateLimit(request, "appointment-availability", 30, 60); if (!limited.allowed) return rateLimited(limited.retryAfter);
   const date = new URL(request.url).searchParams.get("date") ?? ""; if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return Response.json({ error: "Geçerli tarih seçin." }, { status: 400 });
   const noon = new Date(`${date}T12:00:00+03:00`), info = localParts(noon); if (info.date !== date || noon.getTime() < Date.now() - 12 * 3600_000 || noon.getTime() > Date.now() + 31 * 86400_000) return Response.json({ error: "Tarih aralık dışında." }, { status: 400 });
@@ -17,6 +17,14 @@ export async function GET(request: Request) {
   const occupied = new Set(bookings.map((item) => item.startAt)), slots: string[] = []; const [sh, sm] = setting.startTime.split(":").map(Number), [eh, em] = setting.endTime.split(":").map(Number);
   for (let minute = sh * 60 + sm; minute + setting.slotMinutes <= eh * 60 + em; minute += setting.slotMinutes) { const hh = String(Math.floor(minute / 60)).padStart(2, "0"), mm = String(minute % 60).padStart(2, "0"), iso = new Date(`${date}T${hh}:${mm}:00+03:00`).toISOString(); if (new Date(iso).getTime() > Date.now() + 3600_000 && !occupied.has(iso)) slots.push(iso); }
   return Response.json({ date, timezone, slots, closed: false }, { headers: { "Cache-Control": "no-store" } });
+}
+
+export async function GET(request: Request) {
+  try { return await getAvailability(request); }
+  catch (error) {
+    console.error("Appointment availability unavailable", { message: error instanceof Error ? error.message : "unknown" });
+    return Response.json({ error: "Randevu sistemi bu demo ortamında henüz yapılandırılmadı." }, { status: 503, headers: { "Cache-Control": "no-store" } });
+  }
 }
 
 export async function POST(request: Request) {
