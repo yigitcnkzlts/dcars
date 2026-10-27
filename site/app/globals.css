@@ -3270,6 +3270,17 @@ h1 em {
     font-size: 13px;
     letter-spacing: 0;
     text-transform: none;
+    transition: background .3s ease, transform .3s ease, box-shadow .3s ease;
+}
+
+.hero-start .button:hover,
+.hero-start .button:focus-visible {
+    background: #c4893a;
+    transform: translateY(-1px);
+    box-shadow:
+        0 0 0 5px rgba(196, 137, 58, .10),
+        0 10px 26px rgba(196, 137, 58, .34),
+        0 0 34px rgba(228, 178, 103, .22);
 }
 .hero-brand-input { display: flex; align-items: center; gap: 8px; min-width: 0; height: 44px; padding: 0 12px; border: 1px solid #e3e6eb; border-radius: 10px; background: #fff; color: #7b8290; }
 .hero-brand-input:focus-within { border-color: #ac8852; box-shadow: 0 0 0 3px #ac885218; }
