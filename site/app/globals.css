@@ -34,13 +34,6 @@ body {
 .cookie-consent div { display: flex; justify-content: flex-end; gap: 10px; }
 .cookie-consent button { min-height: 38px; padding: 0 15px; border: 1px solid #c4893a; border-radius: 999px; background: #fff; color: #744b18; font-weight: 700; }
 .cookie-consent button:last-child { background: #c4893a; color: #fff; }
-.faq__server-list { display: grid; gap: 24px; }
-.faq__server-list section { display: grid; gap: 8px; }
-.faq__server-list h3 { margin: 0 0 4px; color: #1f2430; font-size: 17px; }
-.faq__server-list details { border-bottom: 1px solid #e5e1da; }
-.faq__server-list summary { display: flex; gap: 12px; padding: 16px 0; cursor: pointer; font-weight: 700; }
-.faq__server-list summary small { color: #a36d28; }
-.faq__server-list details p { margin: 0; padding: 0 0 18px 34px; color: #666158; line-height: 1.65; }
 .comparison-page { padding-top: 126px; }
 .comparison-page__header { max-width: 860px; margin: 0 auto 34px; padding: 0 24px; text-align: center; }
 .comparison-page__header span, .article-page header span { color: #9b6b2d; font-size: 12px; font-weight: 800; letter-spacing: .13em; }
@@ -795,6 +788,33 @@ h1 em {
     line-height: 1.75;
 }
 
+.faq__intro { position: sticky; top: 110px; align-self: start; }
+.faq__highlights { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
+.faq__highlights span { display: inline-flex; align-items: center; gap: 7px; padding: 8px 12px; border: 1px solid #dedbd2; border-radius: 999px; color: #5f5b52; font-size: 11px; }
+.faq__highlights strong { color: #111; font-size: 13px; }
+.faq__contact-card { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 13px; margin-top: 32px; padding: 18px; border-radius: 16px; background: #171714; color: #f7f7f2; }
+.faq__contact-card > svg { color: #c3a46c; }
+.faq__contact-card div { display: grid; gap: 4px; }
+.faq__contact-card strong { font-size: 13px; }
+.faq__contact-card span { color: #aaa89f; font-size: 11px; }
+.faq__contact-card a { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; background: #c3a46c; color: #111; }
+.faq__server-list { display: grid; gap: 44px; }
+.faq__group { display: grid; }
+.faq__group-heading { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; padding-bottom: 15px; border-bottom: 1px solid #cbc8bf; }
+.faq__group-heading > span { color: #a48e64; font-size: 10px; letter-spacing: .1em; }
+.faq__group-heading h3 { margin: 0; color: #1b1b19; font-size: 17px; font-weight: 700; }
+.faq__group-heading small { color: #8a877f; font-size: 10px; text-transform: uppercase; letter-spacing: .08em; }
+.faq__server-list details { border-bottom: 1px solid #dfddd6; }
+.faq__server-list summary { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 18px; padding: 20px 4px; color: #24231f; cursor: pointer; font-size: 15px; font-weight: 650; list-style: none; }
+.faq__server-list summary::-webkit-details-marker { display: none; }
+.faq__server-list summary i { position: relative; width: 22px; height: 22px; border: 1px solid #cbc7bc; border-radius: 50%; transition: .25s ease; }
+.faq__server-list summary i::before, .faq__server-list summary i::after { content: ""; position: absolute; top: 50%; left: 50%; width: 8px; height: 1px; background: #685d49; transform: translate(-50%, -50%); transition: .25s ease; }
+.faq__server-list summary i::after { transform: translate(-50%, -50%) rotate(90deg); }
+.faq__server-list details[open] summary i { background: #171714; border-color: #171714; }
+.faq__server-list details[open] summary i::before, .faq__server-list details[open] summary i::after { background: #fff; }
+.faq__server-list details[open] summary i::after { transform: translate(-50%, -50%) rotate(0); }
+.faq__server-list details p { max-width: 680px; margin: 0; padding: 0 48px 22px 4px; color: #67645d; font-size: 14px; line-height: 1.75; }
+
 .faq__intro>a {
     display: inline-flex;
     align-items: center;
@@ -1084,6 +1104,8 @@ h1 em {
         grid-template-columns: 1fr;
         gap: 55px;
     }
+
+    .faq__intro { position: static; }
 }
 
 @media (max-width:720px) {
