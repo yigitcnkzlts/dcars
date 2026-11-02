@@ -3,7 +3,7 @@
  *
  * Reads D:\dcars-katalog\data\makes-models.csv and engines.csv,
  * normalizes the data, deduplicates records, and writes
- * site/data/vehicle-catalog/csv-catalog.json.
+ * data/vehicle-catalog/csv-catalog.json.
  *
  * Data source: https://github.com/gor3a/vehicle-makes-models
  * Data license: ODbL 1.0 — Open Database License.
