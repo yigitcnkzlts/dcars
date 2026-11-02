@@ -2245,6 +2245,14 @@ h1 em {
 .home-highlights__grid article svg { transition: none; }
 .home-highlights__grid h3 { margin: 28px 0 12px; font-size: 20px; line-height: 1.25; letter-spacing: -.02em; font-weight: 600; }
 .home-highlights__grid p { margin: 0; color: #5d6370; font-size: 15px; line-height: 1.7; }
+.driving-guide { display: grid; grid-template-columns: minmax(280px, .78fr) minmax(320px, 1.22fr); max-width: 1100px; margin: 52px auto 0; overflow: hidden; border: 1px solid #e5e2da; border-radius: 20px; background: #f7f6f1; }
+.driving-guide__media { display: grid; place-items: center; min-height: 500px; padding: 24px; background: #e9ecee; }
+.driving-guide__media img { display: block; width: 100%; height: min(62vw, 600px); object-fit: contain; }
+.driving-guide__copy { display: flex; flex-direction: column; justify-content: center; align-items: flex-start; padding: clamp(34px, 6vw, 72px); }
+.driving-guide__copy > span { color: #8b6d3e; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; }
+.driving-guide__copy h3 { max-width: 540px; margin: 16px 0; color: #1c2230; font-size: clamp(28px, 3.3vw, 44px); line-height: 1.08; letter-spacing: -.035em; }
+.driving-guide__copy p { max-width: 580px; margin: 0; color: #5d6370; font-size: 15px; line-height: 1.75; }
+.driving-guide__copy a { display: inline-flex; align-items: center; gap: 9px; margin-top: 28px; padding-bottom: 7px; border-bottom: 1px solid #9b7a43; color: #765b32; font-size: 13px; font-weight: 700; }
 
 /* Site geneli alt bilgi */
 .site-footer { background: #151514; color: #e9e7e1; }
@@ -2337,11 +2345,17 @@ h1 em {
 @media (max-width: 900px) {
     .home-highlights__heading { grid-template-columns: 1fr; align-items: start; }
     .home-highlights__grid { grid-template-columns: 1fr; }
+    .driving-guide { grid-template-columns: 1fr; }
+    .driving-guide__media { min-height: 0; }
+    .driving-guide__media img { height: min(110vw, 700px); }
     .site-footer__top { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (max-width: 560px) {
     .home-highlights__grid article { min-height: 270px; }
+    .driving-guide { margin-top: 32px; border-radius: 15px; }
+    .driving-guide__media { padding: 12px; }
+    .driving-guide__copy { padding: 30px 24px 34px; }
     .site-footer__top { grid-template-columns: 1fr; }
     .site-footer__bottom { flex-direction: column; }
     .legal-page { padding-top: 135px; }
@@ -3359,10 +3373,27 @@ h1 em {
 .journey__grid small { display: block; margin: 12px 0 8px; color: #8a6a38; letter-spacing: .12em; }
 .journey__grid h3 { margin: 0 0 8px; font-size: 18px; color: #1c2230; }
 .journey__grid p { margin: 0; color: #5d6370; font-size: 14px; line-height: 1.65; }
+.journey__nationwide { display: grid; grid-template-columns: minmax(280px, .82fr) minmax(320px, 1.18fr); align-items: stretch; max-width: 1100px; margin: 40px auto 0; overflow: hidden; border: 1px solid #e2e5e9; border-radius: 20px; background: #fff; text-align: left; }
+.journey__nationwide-media { display: grid; place-items: center; min-height: 500px; padding: 24px; background: #f0f0ed; }
+.journey__nationwide-media img { display: block; width: 100%; height: min(60vw, 600px); object-fit: contain; }
+.journey__nationwide-copy { display: flex; flex-direction: column; justify-content: center; align-items: flex-start; padding: clamp(34px, 6vw, 72px); }
+.journey__nationwide-copy > span { color: #8a6a38; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; }
+.journey__nationwide-copy h3 { max-width: 570px; margin: 15px 0; color: #1c2230; font-size: clamp(28px, 3.3vw, 44px); line-height: 1.08; letter-spacing: -.035em; }
+.journey__nationwide-copy p { max-width: 580px; margin: 0 0 28px; color: #5d6370; font-size: 15px; line-height: 1.75; }
 
 @media (max-width: 900px) {
     .hero-start, .journey__grid { grid-template-columns: 1fr; }
+    .journey__nationwide { grid-template-columns: 1fr; }
+    .journey__nationwide-media { min-height: 0; }
+    .journey__nationwide-media img { height: min(108vw, 700px); }
     .hero-start .button { width: 100%; }
+}
+
+@media (max-width: 560px) {
+    .journey__nationwide { border-radius: 15px; }
+    .journey__nationwide-media { padding: 12px; }
+    .journey__nationwide-copy { padding: 30px 24px 34px; }
+    .journey__nationwide-copy .button { width: 100%; }
 }
 
 .button {

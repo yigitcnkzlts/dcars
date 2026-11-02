@@ -1,6 +1,7 @@
 import { BadgeCheck, ScanSearch, ShieldCheck } from "lucide-react";
 import Link from "@/components/layout/NativeLink";
 import { ArrowRight } from "lucide-react";
+import Image from "next/image";
 
 const highlights = [
   [ScanSearch, "Kısa başvuru", "Araç bilgilerini adım adım paylaşın. Bildiğiniz hasarları ve ekspertiz detaylarını ekleyebilirsiniz."],
@@ -28,6 +29,23 @@ export function HomeHighlights() {
           </article>
         ))}
       </div>
+      <article className="driving-guide" aria-labelledby="driving-guide-title">
+        <div className="driving-guide__media">
+          <Image
+            src="/images/dcars-winter-driving-tips.jpg"
+            alt="Kışın yapılan en büyük sürüş hatalarını gösteren D CARS rehberi"
+            width={691}
+            height={864}
+            sizes="(max-width: 900px) 100vw, 42vw"
+          />
+        </div>
+        <div className="driving-guide__copy">
+          <span>Araç rehberi · Güvenli sürüş</span>
+          <h3 id="driving-guide-title">Kışın yapılan en büyük sürüş hataları</h3>
+          <p>Kış lastiğini geciktirmek, ani fren yapmak ve sıvı kontrollerini ihmal etmek hem güvenliği hem de aracınızın kondisyonunu etkiler. Soğuk havalara çıkmadan önce temel kontrollerinizi tamamlayın.</p>
+          <Link href="/blog">Araç rehberini incele <ArrowRight size={17} /></Link>
+        </div>
+      </article>
     </section>
   );
 }
