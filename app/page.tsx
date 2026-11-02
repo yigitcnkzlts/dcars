@@ -2,7 +2,6 @@ import { Navbar } from "@/components/layout/Navbar";
 import { HeroSection } from "@/components/home/HeroSection";
 import { PremiumProcess } from "@/components/home/PremiumProcess";
 import { HomeHighlights } from "@/components/home/HomeHighlights";
-import { FaqSection } from "@/components/home/FaqSection";
 
 export default function Home() {
   return (
@@ -11,7 +10,6 @@ export default function Home() {
       <HeroSection />
       <PremiumProcess />
       <HomeHighlights />
-      <FaqSection />
     </main>
   );
 }
